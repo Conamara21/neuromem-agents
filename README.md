@@ -15,6 +15,34 @@ A biologically-inspired memory management system for AI agents that mimics human
 - **Persistent Storage**: Memory data is saved to and loaded from database for continuity
 - **Memory Consolidation**: High-value memories are transferred from working to long-term storage
 
+## 🧠 Advanced Neural Plasticity Features
+
+- **STDP (Spike-Timing Dependent Plasticity)**: Connection strengths adjust based on activation timing, simulating biological long-term potentiation/depression
+- **Meta-Learning**: System learns how to learn more effectively, dynamically adjusting parameters based on performance
+- **Attention Gate**: Selective processing of relevant information, suppressing irrelevant memories during retrieval
+- **Self-Adapting Architecture**: System continuously improves performance through biological-inspired mechanisms
+
+## 🧠 Hierarchical Memory Architecture
+
+- **Cortical Column Simulation**: Hierarchical processing units mimicking biological cortical columns with input, intermediate, output, and prediction layers
+- **Multi-Region Coordination**: Coordination between different brain regions (hippocampus, prefrontal cortex, temporal lobe, etc.) for comprehensive information processing
+- **Predictive Coding**: Prediction-based storage optimization that reduces unnecessary information storage by evaluating prediction error
+
+## 🧠 Brain Region Coordination Mechanisms
+
+- **Regional Activity Tracking**: Independent activity levels for each brain region with historical tracking
+- **Inter-Regional Interactions**: Predefined connection strengths between brain regions with bidirectional communication
+- **Coordination Algorithm**: Dynamic modulation of activity levels based on inter-regional influences
+- **Multi-Region Retrieval**: Parallel access across multiple brain regions with weighted results
+- **Biological Accuracy**: Mirrors real neural pathways and cross-regional information flow
+
+## ⚡ Efficiency Optimizations
+
+- **Sparse Activation**: Selective activation of relevant neural subsets, dramatically reducing computational costs
+- **Progressive Refinement**: Coarse-grained filtering followed by fine-grained refinement process optimization
+- **Quantum-Inspired Algorithms**: Quantum computing concepts applied to optimize search and association processes
+- **Computational Savings**: Significant reduction in processing requirements while maintaining quality
+
 ## 🧠 Biological Design Details
 
 Our system closely mimics human memory architecture:
@@ -57,10 +85,19 @@ pip install neuromem-agents
 ### Basic Usage
 
 ```python
-from neuromem.core import MemoryManager, MemoryType
+from neuromem.core import MemoryManager, EnhancedMemoryManager, HierarchicalMemoryManager, EfficiencyOptimizedMemoryManager, MemoryType
 
-# Initialize the memory manager with persistence
+# Initialize the basic memory manager with persistence
 mem_manager = MemoryManager(capacity=1000, db_path='my_memory.db')
+
+# Or initialize the enhanced memory manager with neural plasticity
+enhanced_manager = EnhancedMemoryManager(capacity=1000, db_path='my_enhanced_memory.db')
+
+# Or initialize the hierarchical memory manager with full biological features
+hier_manager = HierarchicalMemoryManager(capacity=1000, db_path='my_hierarchical_memory.db')
+
+# Or initialize the efficiency-optimized memory manager
+eff_manager = EfficiencyOptimizedMemoryManager(capacity=1000, db_path='my_efficient_memory.db')
 
 # Encode information into memory
 id1 = mem_manager.encode("The capital of France is Paris", MemoryType.SEMANTIC)
@@ -83,6 +120,83 @@ mem_manager.save_to_db()
 # Get system statistics
 stats = mem_manager.get_statistics()
 print(stats)
+```
+
+### Efficiency-Optimized Usage
+
+```python
+from neuromem.core import EfficiencyOptimizedMemoryManager, MemoryType
+
+# Initialize the efficiency-optimized memory manager
+eff_manager = EfficiencyOptimizedMemoryManager(capacity=1000, db_path='efficient_memory.db')
+
+# Encode information with sparse activation optimization
+id1 = eff_manager.encode(
+    "Quantum physics describes the behavior of matter and energy", 
+    MemoryType.SEMANTIC,
+    tags=["physics", "quantum"]
+)
+
+# Retrieve efficiently using sparse activation and progressive refinement
+results = eff_manager.retrieve("quantum physics", top_k=3)
+for node in results:
+    print(f"- {node.content}")
+
+# Get efficiency statistics
+eff_stats = eff_manager.get_efficiency_statistics()
+print(f"Efficiency: {eff_stats['activation_ratio']*100:.1f}% of nodes activated")
+
+# The system automatically uses:
+# - Sparse activation to minimize computational costs
+# - Progressive refinement (coarse → fine) for optimization
+# - Quantum-inspired algorithms for enhanced search
+```
+
+### Hierarchical Usage with Full Biological Features
+
+```python
+from neuromem.core import HierarchicalMemoryManager, MemoryType, BrainRegion, MemoryLayer
+
+# Initialize the hierarchical memory manager with full biological features
+hier_manager = HierarchicalMemoryManager(capacity=1000, db_path='hierarchical_memory.db')
+
+# Encode information to specific brain regions and layers
+hippocampus_id = hier_manager.encode(
+    "The hippocampus is crucial for memory formation", 
+    MemoryType.SEMANTIC, 
+    BrainRegion.HIPPOCAMPUS,
+    tags=["memory", "consolidation"],
+    layer=MemoryLayer.INPUT_LAYER
+)
+
+prefrontal_id = hier_manager.encode(
+    "Prefrontal cortex handles executive functions", 
+    MemoryType.SEMANTIC, 
+    BrainRegion.PREFRONTAL_CORTEX,
+    tags=["decision", "planning"],
+    layer=MemoryLayer.OUTPUT_LAYER
+)
+
+# Set up inter-regional interactions
+hier_manager.coordinator.set_region_interaction(
+    BrainRegion.HIPPOCAMPUS, 
+    BrainRegion.PREFRONTAL_CORTEX, 
+    0.8  # Strong interaction
+)
+
+# The system will automatically coordinate between regions and use predictive coding
+# to optimize storage based on prediction error
+
+# Use predictive retrieval for more contextually relevant results
+results = hier_manager.predict_and_retrieve("memory formation", top_k=3)
+for node in results:
+    print(f"- [{node.region.value}] {node.content}")
+
+# Coordinate retrieval across multiple brain regions
+region_results = hier_manager.coordinate_regions(BrainRegion.HIPPOCAMPUS, "memory")
+for region, nodes in region_results.items():
+    if nodes:
+        print(f"[{region.value}] {len(nodes)} related memories")
 ```
 
 ### Loading from Persistent Storage
@@ -149,6 +263,9 @@ Generated visualization files:
 
 ### Core Components
 - `MemoryManager`: Main interface for memory operations with persistence
+- `EnhancedMemoryManager`: Advanced manager with neural plasticity features
+- `HierarchicalMemoryManager`: Full biological features with cortical columns, multi-region coordination, and predictive coding
+- `EfficiencyOptimizedMemoryManager`: Efficiency-focused implementation with sparse activation, progressive refinement, and quantum-inspired algorithms
 - `SpikingNeuralNetwork`: Neural dynamics simulation
 - `MemoryNode`: Individual memory units with metadata
 - `MemoryDatabase`: Persistent storage using SQLite
@@ -162,6 +279,11 @@ Our neuromorphic approach demonstrates:
 - Improved handling of extended conversation scenarios
 - Trade-offs in raw efficiency for enhanced cognitive capabilities
 - Continuity through persistent storage and memory consolidation
+- Enhanced adaptability through neural plasticity mechanisms
+- Efficient resource utilization through predictive coding
+- Biological realism through hierarchical architecture
+- Cross-regional collaboration through brain region coordination
+- Computational efficiency through sparse activation and optimization
 
 ## 🤝 Contributing
 
@@ -194,6 +316,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **情境标记**：丰富的元数据实现精确过滤和分类
 - **持久化存储**：记忆数据保存到数据库以保证连续性
 - **记忆巩固**：高价值记忆从工作记忆转移到长期存储
+
+## 🧠 高级神经可塑性特性
+
+- **STDP（脉冲时间依赖可塑性）**：连接强度基于激活时间调整，模拟生物长时程增强/抑制
+- **元学习**：系统学习如何更有效地学习，动态调整基于性能的参数
+- **注意力门控**：相关息的选择性处理，检索时抑制无关记忆
+- **自适应架构**：系统通过生物学启发机制持续改进性能
+
+## 🧠 分层记忆架构
+
+- **皮质柱模拟**：分层处理单元模仿生物皮质柱，具有输入、中间、输出和预测层
+- **多区域协调**：不同脑区（海马体、前额叶、颞叶等）间的协调，实现综合信息处理
+- **预测编码**：基于预测的存储优化，通过评估预测误差减少不必要的信息存储
+
+## 🧠 脑区协调机制
+
+- **区域活动跟踪**：每个脑区独立的活动水平，带有历史记录
+- **区域间交互**：脑区间预定义的连接强度，具有双向通信
+- **协调算法**：基于区域间影响的动态活动水平调节
+- **多区域检索**：跨多个脑区的并行访问，加权结果
+- **生物学准确性**：镜像真实脑区间的神经通路和跨区域信息流
+
+## ⚡ 效率优化
+
+- **稀疏激活**：选择性激活相关神经元子集，大幅降低计算成本
+- **渐进式细化**：粗粒度筛选后进行细粒度精化的过程优化
+- **量子启发算法**：利用量子计算概念优化搜索和关联过程
+- **计算节省**：在保持质量的同时显著减少处理需求
 
 ## 🧠 类人脑设计细节
 
@@ -237,10 +387,19 @@ pip install neuromem-agents
 ### 基础使用
 
 ```python
-from neuromem.core import MemoryManager, MemoryType
+from neuromem.core import MemoryManager, EnhancedMemoryManager, HierarchicalMemoryManager, EfficiencyOptimizedMemoryManager, MemoryType
 
-# 初始化带持久化的记忆管理器
+# 初始化带持久化的基础记忆管理器
 mem_manager = MemoryManager(capacity=1000, db_path='my_memory.db')
+
+# 或初始化带神经可塑性的增强记忆管理器
+enhanced_manager = EnhancedMemoryManager(capacity=1000, db_path='my_enhanced_memory.db')
+
+# 或初始化带完整生物特性的分层记忆管理器
+hier_manager = HierarchicalMemoryManager(capacity=1000, db_path='my_hierarchical_memory.db')
+
+# 或初始化效率优化的记忆管理器
+eff_manager = EfficiencyOptimizedMemoryManager(capacity=1000, db_path='my_efficient_memory.db')
 
 # 编码信息到记忆中
 id1 = mem_manager.encode("法国的首都是巴黎", MemoryType.SEMANTIC)
@@ -263,6 +422,83 @@ mem_manager.save_to_db()
 # 获取系统统计信息
 stats = mem_manager.get_statistics()
 print(stats)
+```
+
+### 效率优化使用
+
+```python
+from neuromem.core import EfficiencyOptimizedMemoryManager, MemoryType
+
+# 初始化效率优化的记忆管理器
+eff_manager = EfficiencyOptimizedMemoryManager(capacity=1000, db_path='efficient_memory.db')
+
+# 使用稀疏激活优化编码信息
+id1 = eff_manager.encode(
+    "量子物理描述物质和能量的行为", 
+    MemoryType.SEMANTIC,
+    tags=["物理", "量子"]
+)
+
+# 使用稀疏激活和渐进式细化高效检索
+results = eff_manager.retrieve("量子物理", top_k=3)
+for node in results:
+    print(f"- {node.content}")
+
+# 获取效率统计
+eff_stats = eff_manager.get_efficiency_statistics()
+print(f"效率: {eff_stats['activation_ratio']*100:.1f}% 的节点被激活")
+
+# 系统自动使用:
+# - 稀疏激活以最小化计算成本
+# - 渐进式细化（粗→精）优化
+# - 量子启发算法增强搜索
+```
+
+### 带完整生物特性的分层使用
+
+```python
+from neuromem.core import HierarchicalMemoryManager, MemoryType, BrainRegion, MemoryLayer
+
+# 初始化带完整生物特性的分层记忆管理器
+hier_manager = HierarchicalMemoryManager(capacity=1000, db_path='hierarchical_memory.db')
+
+# 编码信息到特定脑区和层
+hippocampus_id = hier_manager.encode(
+    "海马体对记忆形成至关重要", 
+    MemoryType.SEMANTIC, 
+    BrainRegion.HIPPOCAMPUS,
+    tags=["记忆", "巩固"],
+    layer=MemoryLayer.INPUT_LAYER
+)
+
+prefrontal_id = hier_manager.encode(
+    "前额叶皮质处理执行功能", 
+    MemoryType.SEMANTIC, 
+    BrainRegion.PREFRONTAL_CORTEX,
+    tags=["决策", "规划"],
+    layer=MemoryLayer.OUTPUT_LAYER
+)
+
+# 设置区域间交互
+hier_manager.coordinator.set_region_interaction(
+    BrainRegion.HIPPOCAMPUS, 
+    BrainRegion.PREFRONTAL_CORTEX, 
+    0.8  # 强交互
+)
+
+# 系统将自动在区域间协调，并使用预测编码
+# 基于预测误差优化存储
+
+# 使用预测检索获得更符合情境的结果
+results = hier_manager.predict_and_retrieve("记忆形成", top_k=3)
+for node in results:
+    print(f"- [{node.region.value}] {node.content}")
+
+# 跨多个脑区协调检索
+region_results = hier_manager.coordinate_regions(BrainRegion.HIPPOCAMPUS, "记忆")
+for region, nodes in region_results.items():
+    if nodes:
+        print(f"[{region.value}] {len(nodes)} 相关记忆")
 ```
 
 ### 从持久化存储加载
@@ -329,6 +565,9 @@ python3 visualize_results.py          # 生成可视化
 
 ### 核心组件
 - `MemoryManager`: 记忆操作的主接口（含持久化）
+- `EnhancedMemoryManager`: 带神经可塑性的高级管理器
+- `HierarchicalMemoryManager`: 带皮质柱、多区域协调和预测编码的完整生物特性管理器
+- `EfficiencyOptimizedMemoryManager`: 效率专注的实现，包含稀疏激活、渐进式细化和量子启发算法
 - `SpikingNeuralNetwork`: 神经动力学模拟
 - `MemoryNode`: 带元数据的单个记忆单元
 - `MemoryDatabase`: 使用SQLite的持久化存储
@@ -342,6 +581,11 @@ python3 visualize_results.py          # 生成可视化
 - 在扩展对话场景中的处理能力改善
 - 在原始效率与增强的认知能力之间的权衡
 - 通过持久化存储和记忆巩固实现连续性
+- 通过神经可塑性机制增强适应性
+- 通过预测编码实现高效资源利用
+- 通过分层架构实现生物真实性
+- 通过脑区协调实现跨区域协作
+- 通过稀疏激活和优化实现计算效率
 
 ## 🤝 贡献
 

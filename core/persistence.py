@@ -304,7 +304,11 @@ def attach_persistence_methods(cls):
         
         # Save all connections
         for source_id, connections in self.connections.items():
-            for target_id, weight in connections:
+            for connection_tuple in connections:
+                if len(connection_tuple) == 3:  # (target_id, weight, timestamp)
+                    target_id, weight, _ = connection_tuple
+                else:  # (target_id, weight) - backward compatibility
+                    target_id, weight = connection_tuple
                 db.save_connection(source_id, target_id, weight)
         
         # Save access frequencies
