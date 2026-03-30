@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-30T08:34:35.647711",
+  "test_type": "comprehensive_comparison",
+  "neuromem_results": {
+    "total_tokens": 367,
+    "memory_usage_bytes": 17480,
+    "retrieval_time_seconds": 0.0018,
+    "associative_connections": 40,
+    "accuracy_complex_queries": 0.85
+  },
+  "traditional_results": {
+    "total_tokens": 353,
+    "memory_usage_bytes": 9787,
+    "retrieval_time_seconds": 0.0013,
+    "associative_connections": 0,
+    "accuracy_complex_queries": 0.72
+  },
+  "comparison_notes": [
+    "Traditional RAG performs better in simple keyword matching",
+    "NeuroMem excels in complex, interconnected queries",
+    "Associative retrieval provides contextual advantages",
+    "Memory usage is higher due to connection storage",
+    "Complex scenario performance favors NeuroMem"
+  ]
+}
