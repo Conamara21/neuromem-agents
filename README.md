@@ -60,6 +60,30 @@ results = engine.run_comparison_test(test_data)
 print(results['summary'])
 ```
 
+### Running Experiments and Visualizations
+
+The project includes comprehensive benchmarking tools:
+
+- `benchmark_test.py`: Basic performance comparison
+- `advanced_benchmark.py`: Complex scenario evaluation
+- `extended_conversation_test.py`: 25+ interaction conversation simulation
+- `visualize_results.py`: Generate performance comparison charts
+
+To run all tests and generate visualizations:
+
+```bash
+cd neuromem-agents
+source venv/bin/activate  # if using virtual environment
+pip3 install matplotlib numpy seaborn  # for visualizations
+python3 extended_conversation_test.py  # Extended conversation test
+python3 visualize_results.py          # Generate visualizations
+```
+
+Generated visualization files:
+- `benchmark_visualization_fixed.png`: Performance comparison chart
+- `extended_conversation_results_fixed.png`: Extended test results
+- `simple_comparison_fixed.png`: Simple comparison chart
+
 ## 🏗️ Architecture
 
 ### Memory Types
