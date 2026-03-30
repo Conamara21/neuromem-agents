@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from enum import Enum
 import time
 import hashlib
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 @dataclass
@@ -82,24 +81,27 @@ class TraditionalRAGSystem:
         if not self.vector_store:
             return []
         
-        # Convert all stored embeddings to array
-        stored_embeddings = np.array(self.vector_store)
-        
-        # Calculate similarities
-        similarities = cosine_similarity(query_embedding, stored_embeddings)[0]
-        
-        # Create result pairs
-        results = [(self.memory_nodes[self.node_ids[i]], float(similarities[i])) 
-                  for i in range(len(self.node_ids))]
+        # Calculate similarities using manual cosine similarity
+        similarities = []
+        for i, stored_embedding in enumerate(self.vector_store):
+            # Manual cosine similarity calculation
+            dot_product = np.dot(query_embedding[0], stored_embedding)
+            norm_query = np.linalg.norm(query_embedding[0])
+            norm_stored = np.linalg.norm(stored_embedding)
+            if norm_query == 0 or norm_stored == 0:
+                similarity = 0.0
+            else:
+                similarity = dot_product / (norm_query * norm_stored)
+            similarities.append((self.memory_nodes[self.node_ids[i]], float(similarity)))
         
         # Sort by similarity
-        results.sort(key=lambda x: x[1], reverse=True)
+        similarities.sort(key=lambda x: x[1], reverse=True)
         
         # Update access frequency
-        for node, _ in results[:top_k]:
+        for node, _ in similarities[:top_k]:
             self.access_frequency[node.id] = self.access_frequency.get(node.id, 1) + 1
         
-        return results[:top_k]
+        return [result for result, _ in similarities[:top_k]]
     
     def _remove_least_recently_used(self):
         """Remove least recently used item when capacity is exceeded"""

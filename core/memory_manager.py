@@ -1,12 +1,5 @@
 """
-NeuroMem-Agents: Neuromorphic Memory System
-
-Implements a brain-inspired memory architecture for AI agents with:
-- Hierarchical memory organization
-- Synaptic plasticity mechanisms
-- Associative recall
-- Active forgetting
-- Persistence capabilities
+Enhanced Memory Manager with Persistence Support
 """
 
 import numpy as np
@@ -16,8 +9,10 @@ from enum import Enum
 import math
 import time
 from datetime import datetime
+import hashlib
 import pickle
 import json
+from .persistence import MemoryDatabase, attach_persistence_methods
 
 
 class MemoryType(Enum):
@@ -64,10 +59,11 @@ class SpikingNeuralNetwork:
         return activation >= self.threshold
 
 
+@attach_persistence_methods
 class MemoryManager:
     """Main memory management system implementing neuromorphic principles"""
     
-    def __init__(self, capacity: int = 10000):
+    def __init__(self, capacity: int = 10000, db_path: str = "neuromem.db"):
         self.capacity = capacity
         self.memory_nodes: Dict[str, MemoryNode] = {}
         self.connections: Dict[str, List[Tuple[str, float]]] = {}  # (target_id, weight)
@@ -76,11 +72,10 @@ class MemoryManager:
         self.access_frequency = {}  # Track memory access patterns
         self.snn = SpikingNeuralNetwork()
         self.current_context = {}
+        self.db = MemoryDatabase(db_path)  # Initialize persistence layer
         
     def encode(self, content: str, memory_type: MemoryType, tags: List[str] = None) -> str:
         """Encode new information into memory nodes"""
-        import hashlib
-        
         # Generate unique ID based on content
         content_hash = hashlib.md5(content.encode()).hexdigest()[:12]
         node_id = f"{memory_type.value}_{content_hash}_{int(time.time())}"
@@ -103,12 +98,17 @@ class MemoryManager:
         self.access_frequency[node_id] = 1
         
         # Handle different memory types
-        if memory_type == MemoryType.WORKING:
+        if memory_type == MemoryType.WORKING or memory_type in [MemoryType.EPISODIC, MemoryType.SEMANTIC]:
+            # Add to working memory buffer (hippocampus-analogous temporary storage)
             self.working_memory_buffer.append(node_id)
             # Limit working memory size
             if len(self.working_memory_buffer) > 100:  # Working memory capacity
                 removed = self.working_memory_buffer.pop(0)
-                del self.memory_nodes[removed]
+                if removed in self.memory_nodes:
+                    del self.memory_nodes[removed]
+        
+        # Persist to database
+        self.db.save_memory_node(node)
         
         return node_id
     
@@ -130,11 +130,16 @@ class MemoryManager:
         self._update_connection(node_id1, node_id2, strength)
         self._update_connection(node_id2, node_id1, strength)
         
+        # Persist connection to database
+        self.db.save_connection(node_id1, node_id2, strength)
+        self.db.save_connection(node_id2, node_id1, strength)
+        
         # Strengthen connection based on Hebbian learning
-        node1 = self.memory_nodes[node_id1]
-        node2 = self.memory_nodes[node_id2]
-        node1.connectivity_strength = min(1.0, node1.connectivity_strength + 0.1 * strength)
-        node2.connectivity_strength = min(1.0, node2.connectivity_strength + 0.1 * strength)
+        if node_id1 in self.memory_nodes and node_id2 in self.memory_nodes:
+            node1 = self.memory_nodes[node_id1]
+            node2 = self.memory_nodes[node_id2]
+            node1.connectivity_strength = min(1.0, node1.connectivity_strength + 0.1 * strength)
+            node2.connectivity_strength = min(1.0, node2.connectivity_strength + 0.1 * strength)
     
     def _update_connection(self, source: str, target: str, strength: float):
         """Update connection strength between nodes"""
@@ -171,6 +176,8 @@ class MemoryManager:
         # Update access frequency
         for node, _ in similarities[:top_k]:
             self.access_frequency[node.id] = self.access_frequency.get(node.id, 1) + 1
+            # Persist updated access frequency to database
+            self.db.save_access_frequency(node.id, self.access_frequency[node.id])
             
         return [node for node, _ in similarities[:top_k]]
     
@@ -202,6 +209,9 @@ class MemoryManager:
         """Consolidate working memory to long-term memory (like sleep/dreaming)"""
         # Process items in working memory buffer
         for node_id in self.working_memory_buffer:
+            if node_id not in self.memory_nodes:
+                continue
+                
             node = self.memory_nodes[node_id]
             
             # Only consolidate highly accessed items
@@ -209,11 +219,16 @@ class MemoryManager:
             if access_count > 3:  # Threshold for consolidation
                 # Move to long-term memory
                 self.long_term_memory[node_id] = node
+                # Persist to long-term memory table
+                self.db.save_to_long_term_memory(node_id, "high_access_frequency")
                 # Reduce working memory presence
                 node.memory_type = MemoryType.SEMANTIC  # Upgrade to semantic memory
         
         # Clear working memory buffer periodically
         if len(self.working_memory_buffer) > 50:
+            # Update database with current buffer state
+            for pos, node_id in enumerate(self.working_memory_buffer[-20:]):
+                self.db.save_to_working_memory_buffer(node_id, pos)
             self.working_memory_buffer = self.working_memory_buffer[-20:]  # Keep recent items
     
     def forget(self, decay_threshold: float = 0.1):
@@ -241,6 +256,8 @@ class MemoryManager:
                 del self.access_frequency[node_id]
             if node_id in self.connections:
                 del self.connections[node_id]
+            # Remove from database as well
+            # Note: In a real implementation, you might want to mark as deleted rather than remove entirely
     
     def get_statistics(self) -> Dict[str, Any]:
         """Get memory system statistics"""
@@ -256,17 +273,19 @@ class MemoryManager:
             "memory_types": memory_types,
             "estimated_size_bytes": total_size,
             "connection_density": sum(len(conns) for conns in self.connections.values()) / max(1, len(self.memory_nodes)),
-            "average_access_frequency": np.mean(list(self.access_frequency.values())) if self.access_frequency else 0
+            "average_access_frequency": np.mean(list(self.access_frequency.values())) if self.access_frequency else 0,
+            "working_memory_size": len(self.working_memory_buffer),
+            "long_term_memory_size": len(self.long_term_memory)
         }
 
 
 if __name__ == "__main__":
-    # Example usage
-    print("NeuroMem-Agents: Neuromorphic Memory System")
-    print("=" * 50)
+    # Example usage with persistence
+    print("NeuroMem-Agents: Neuromorphic Memory System with Persistence")
+    print("=" * 60)
     
-    # Initialize memory manager
-    mem_manager = MemoryManager(capacity=1000)
+    # Initialize memory manager with persistence
+    mem_manager = MemoryManager(capacity=1000, db_path="test_neuromem.db")
     
     # Encode some sample memories
     id1 = mem_manager.encode("The capital of France is Paris", MemoryType.SEMANTIC, tags=["geography"])
@@ -277,14 +296,36 @@ if __name__ == "__main__":
     mem_manager.associate(id1, id2, 0.8)
     mem_manager.associate(id1, id3, 0.9)
     
+    # Perform consolidation
+    mem_manager.consolidate()
+    
     # Retrieve related memories
     results = mem_manager.retrieve("Paris", top_k=3)
     print(f"\nRetrieved {len(results)} related memories:")
     for i, node in enumerate(results, 1):
-        print(f"{i}. {node.content} (similarity: {node.activation_level:.3f})")
+        print(f"{i}. {node.content}")
     
     # Get statistics
     stats = mem_manager.get_statistics()
     print(f"\nMemory Statistics:")
     for key, value in stats.items():
         print(f"- {key}: {value}")
+    
+    # Save to database
+    mem_manager.save_to_db()
+    print("\nMemory system saved to database!")
+    
+    # Create a new instance and load from database
+    print("\nLoading from database...")
+    new_mem_manager = MemoryManager(capacity=1000, db_path="test_neuromem.db")
+    new_mem_manager.load_from_db()
+    
+    # Verify loaded data
+    stats = new_mem_manager.get_statistics()
+    print(f"Loaded memory system with {stats['total_nodes']} nodes")
+    
+    # Test retrieval on loaded system
+    results = new_mem_manager.retrieve("Paris", top_k=3)
+    print(f"\nRetrieved from loaded system: {len(results)} memories")
+    for i, node in enumerate(results, 1):
+        print(f"{i}. {node.content}")
