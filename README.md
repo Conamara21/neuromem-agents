@@ -5,6 +5,12 @@
 
 A biologically-inspired memory management system for AI agents that mimics human memory architecture to improve contextual understanding and associative retrieval.
 
+System architecture at a glance:
+
+![NeuroMem architecture mindmap](docs/neuromem_architecture_mindmap_en.png)
+
+![NeuroMem architecture flowchart](docs/neuromem_architecture_flowchart_en.png)
+
 ## 🧠 Key Features
 
 - **Biological Inspiration**: Models human memory types (sensory, working, episodic, semantic)
@@ -311,12 +317,6 @@ Generated visualization files:
 
 ## 🏗️ Architecture
 
-High-level architecture diagrams:
-
-![NeuroMem architecture mindmap](docs/neuromem_architecture_mindmap.png)
-
-![NeuroMem architecture flowchart](docs/neuromem_architecture_flowchart.png)
-
 ### Memory Types
 - **Sensory Memory**: Instantaneous storage (milliseconds)
 - **Working Memory**: Active processing (seconds to minutes) 
@@ -363,6 +363,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
 一个生物学启发的AI代理记忆管理系统，模仿人类记忆架构以改善情境理解和关联检索。
+
+系统结构总览：
+
+![NeuroMem 架构思维导图](docs/neuromem_architecture_mindmap.png)
+
+![NeuroMem 架构流转图](docs/neuromem_architecture_flowchart.png)
 
 ## 🧠 主要特性
 
@@ -669,12 +675,6 @@ python visualize_results.py
 - `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_visualization_summary.txt`: 图表文字摘要
 
 ## 🏗️ 架构
-
-架构总览图：
-
-![NeuroMem 架构思维导图](docs/neuromem_architecture_mindmap.png)
-
-![NeuroMem 架构流转图](docs/neuromem_architecture_flowchart.png)
 
 ### 记忆类型
 - **感觉记忆**：即时存储（毫秒级）
