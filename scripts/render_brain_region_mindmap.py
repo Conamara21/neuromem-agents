@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+from PIL import Image, ImageDraw, ImageFont
+
 
 @dataclass(frozen=True)
 class BranchSpec:
@@ -27,7 +29,9 @@ class DiagramSpec:
     mermaid_intro: str
     left_branches: tuple[BranchSpec, ...]
     right_branches: tuple[BranchSpec, ...]
+    font_preference: tuple[str, ...]
     svg_output: Path
+    png_output: Path
     mermaid_output: Path
 
     @property
@@ -58,10 +62,26 @@ def _chunk_text(text: str, width: int) -> list[str]:
     return [text[index:index + width] for index in range(0, len(text), width)]
 
 
+def _format_module_lines(module: str) -> list[str]:
+    if "/" not in module:
+        return _chunk_text(module, 36)
+
+    prefix, filename = module.rsplit("/", 1)
+    lines = [prefix + "/"]
+    lines.extend(_chunk_text(filename, 32))
+    return lines
+
+
+def _format_mechanism_lines(mechanism: str) -> list[str]:
+    if ", " in mechanism:
+        return mechanism.split(", ")
+    return _chunk_text(mechanism, 32)
+
+
 def _build_box_text(branch: BranchSpec) -> list[str]:
     lines = [branch.summary]
-    lines.extend(_chunk_text(branch.module, 38))
-    lines.extend(_chunk_text(branch.mechanism, 40))
+    lines.extend(_format_module_lines(branch.module))
+    lines.extend(_format_mechanism_lines(branch.mechanism))
     return lines
 
 
@@ -87,6 +107,13 @@ def _render_text_block(
         + "".join(spans)
         + "</text>"
     )
+
+
+def _load_font(candidates: tuple[str, ...], size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    for candidate in candidates:
+        if Path(candidate).exists():
+            return ImageFont.truetype(candidate, size=size)
+    return ImageFont.load_default()
 
 
 def _connector_path(start_x: float, start_y: float, end_x: float, end_y: float, side: str) -> str:
@@ -222,6 +249,121 @@ def render_svg(spec: DiagramSpec) -> None:
     spec.svg_output.write_text("\n".join(pieces), encoding="utf-8")
 
 
+def render_png(spec: DiagramSpec) -> None:
+    width = 1820
+    height = 1460
+    root_x = width / 2
+    root_y = height / 2
+    root_rx = 190
+    root_ry = 118
+    box_w = 460
+    box_h = 126
+    box_gap = 26
+    left_x = 120
+    right_x = width - left_x - box_w
+
+    title_font = _load_font(spec.font_preference, 36)
+    intro_font = _load_font(spec.font_preference, 20)
+    root_font = _load_font(spec.font_preference, 28)
+    branch_title_font = _load_font(spec.font_preference, 24)
+    branch_body_font = _load_font(spec.font_preference, 16)
+    footer_font = _load_font(spec.font_preference, 16)
+
+    image = Image.new("RGB", (width, height), "#f4f8ff")
+    draw = ImageDraw.Draw(image)
+
+    for y in range(height):
+        ratio = y / max(1, height - 1)
+        r = int(248 * (1 - ratio) + 238 * ratio)
+        g = int(250 * (1 - ratio) + 244 * ratio)
+        b = int(252 * (1 - ratio) + 255 * ratio)
+        draw.line((0, y, width, y), fill=(r, g, b))
+
+    draw.text((90, 52), spec.title, fill="#0f172a", font=title_font)
+    draw.text((90, 98), spec.intro, fill="#475569", font=intro_font)
+
+    shadow_offset = 8
+    draw.ellipse(
+        (
+            root_x - root_rx + shadow_offset,
+            root_y - root_ry + shadow_offset,
+            root_x + root_rx + shadow_offset,
+            root_y + root_ry + shadow_offset,
+        ),
+        fill="#dbe7ff",
+    )
+    draw.ellipse(
+        (root_x - root_rx, root_y - root_ry, root_x + root_rx, root_y + root_ry),
+        fill="#0f172a",
+        outline="#1d4ed8",
+        width=4,
+    )
+
+    root_line_y = root_y - 54
+    for index, line in enumerate(spec.root_lines):
+        bbox = draw.textbbox((0, 0), line, font=root_font)
+        text_x = root_x - (bbox[2] - bbox[0]) / 2
+        draw.text((text_x, root_line_y + index * 34), line, fill="#f8fafc", font=root_font)
+
+    total_left_height = len(spec.left_branches) * box_h + max(0, len(spec.left_branches) - 1) * box_gap
+    total_right_height = len(spec.right_branches) * box_h + max(0, len(spec.right_branches) - 1) * box_gap
+    left_start_y = (height - total_left_height) / 2
+    right_start_y = (height - total_right_height) / 2
+
+    def draw_side(branches: tuple[BranchSpec, ...], side: str, start_y: float, box_x: float) -> None:
+        anchor_x = box_x + box_w if side == "left" else box_x
+        start_x = root_x - root_rx if side == "left" else root_x + root_rx
+        body_x = box_x + 26
+
+        for index, branch in enumerate(branches):
+            y = start_y + index * (box_h + box_gap)
+            center_y = y + box_h / 2
+            start_y_adjusted = root_y + (center_y - root_y) * 0.28
+
+            line_points = [
+                (start_x, start_y_adjusted),
+                (start_x + (135 if side == "right" else -135), start_y_adjusted),
+                (anchor_x + (-85 if side == "right" else 85), center_y),
+                (anchor_x, center_y),
+            ]
+            draw.line(line_points, fill=branch.accent, width=5, joint="curve")
+            draw.ellipse((anchor_x - 8, center_y - 8, anchor_x + 8, center_y + 8), fill=branch.accent)
+
+            shadow_box = (
+                box_x + shadow_offset,
+                y + shadow_offset,
+                box_x + box_w + shadow_offset,
+                y + box_h + shadow_offset,
+            )
+            draw.rounded_rectangle(shadow_box, radius=22, fill="#dde8f7")
+            draw.rounded_rectangle(
+                (box_x, y, box_x + box_w, y + box_h),
+                radius=22,
+                fill="#ffffff",
+                outline=branch.accent,
+                width=3,
+            )
+            draw.text((body_x, y + 18), branch.title, fill="#0f172a", font=branch_title_font)
+
+            text_lines = _build_box_text(branch)
+            for line_index, line in enumerate(text_lines):
+                draw.text(
+                    (body_x, y + 52 + line_index * 22),
+                    line,
+                    fill="#334155",
+                    font=branch_body_font,
+                )
+
+    draw_side(spec.left_branches, "left", left_start_y, left_x)
+    draw_side(spec.right_branches, "right", right_start_y, right_x)
+
+    footer_bbox = draw.textbbox((0, 0), spec.footer, font=footer_font)
+    footer_x = (width - (footer_bbox[2] - footer_bbox[0])) / 2
+    draw.text((footer_x, height - 42), spec.footer, fill="#64748b", font=footer_font)
+
+    image.save(spec.png_output)
+
+
 def render_mermaid(spec: DiagramSpec) -> None:
     lines = [
         f"# {spec.mermaid_heading}",
@@ -325,7 +467,13 @@ def build_specs(repo_root: Path) -> tuple[DiagramSpec, DiagramSpec]:
                 accent="#be123c",
             ),
         ),
+        font_preference=(
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        ),
         svg_output=repo_root / "docs" / "neuromem_brain_regions_mindmap.svg",
+        png_output=repo_root / "docs" / "neuromem_brain_regions_mindmap.png",
         mermaid_output=repo_root / "docs" / "neuromem_brain_regions_mindmap.md",
     )
 
@@ -410,7 +558,12 @@ def build_specs(repo_root: Path) -> tuple[DiagramSpec, DiagramSpec]:
                 accent="#be123c",
             ),
         ),
+        font_preference=(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        ),
         svg_output=repo_root / "docs" / "neuromem_brain_regions_mindmap_en.svg",
+        png_output=repo_root / "docs" / "neuromem_brain_regions_mindmap_en.png",
         mermaid_output=repo_root / "docs" / "neuromem_brain_regions_mindmap_en.md",
     )
 
@@ -422,8 +575,10 @@ def main() -> None:
     specs = build_specs(repo_root)
     for spec in specs:
         render_svg(spec)
+        render_png(spec)
         render_mermaid(spec)
         print(f"generated {spec.svg_output.relative_to(repo_root)}")
+        print(f"generated {spec.png_output.relative_to(repo_root)}")
         print(f"generated {spec.mermaid_output.relative_to(repo_root)}")
 
 

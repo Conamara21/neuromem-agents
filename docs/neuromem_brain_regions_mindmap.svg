@@ -22,51 +22,51 @@
 <circle cx="580.0" cy="426.0" r="8" fill="#2563eb"/>
 <rect x="120.0" y="363.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#2563eb" stroke-width="3" filter="url(#shadow)"/>
 <text x="146.0" y="397.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="146.0" dy="0">海马体 Hippocampus</tspan></text>
-<text x="146.0" y="429.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">工作记忆缓冲 + 记忆巩固</tspan><tspan x="146.0" dy="22">neuromem/core/enhanced_memory_manager.</tspan><tspan x="146.0" dy="22">py</tspan><tspan x="146.0" dy="22">working_memory_buffer, consolidate()</tspan></text>
+<text x="146.0" y="429.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">工作记忆缓冲 + 记忆巩固</tspan><tspan x="146.0" dy="22">neuromem/core/</tspan><tspan x="146.0" dy="22">enhanced_memory_manager.py</tspan><tspan x="146.0" dy="22">working_memory_buffer</tspan><tspan x="146.0" dy="22">consolidate()</tspan></text>
 <path d="M 720.0 687.4 C 585.0 687.4, 665.0 578.0, 580.0 578.0" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
 <circle cx="580.0" cy="578.0" r="8" fill="#16a34a"/>
 <rect x="120.0" y="515.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#16a34a" stroke-width="3" filter="url(#shadow)"/>
 <text x="146.0" y="549.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="146.0" dy="0">大脑皮质 Cortex</tspan></text>
-<text x="146.0" y="581.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">长期记忆存储 + 知识沉淀</tspan><tspan x="146.0" dy="22">neuromem/core/enhanced_memory_manager.</tspan><tspan x="146.0" dy="22">py</tspan><tspan x="146.0" dy="22">long_term_memory</tspan></text>
+<text x="146.0" y="581.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">长期记忆存储 + 知识沉淀</tspan><tspan x="146.0" dy="22">neuromem/core/</tspan><tspan x="146.0" dy="22">enhanced_memory_manager.py</tspan><tspan x="146.0" dy="22">long_term_memory</tspan></text>
 <path d="M 720.0 730.0 C 585.0 730.0, 665.0 730.0, 580.0 730.0" fill="none" stroke="#ea580c" stroke-width="5" stroke-linecap="round"/>
 <circle cx="580.0" cy="730.0" r="8" fill="#ea580c"/>
 <rect x="120.0" y="667.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#ea580c" stroke-width="3" filter="url(#shadow)"/>
 <text x="146.0" y="701.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="146.0" dy="0">边缘系统 Limbic System</tspan></text>
-<text x="146.0" y="733.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">重要性标注 + 检索偏置</tspan><tspan x="146.0" dy="22">neuromem/core/enhanced_memory_manager.</tspan><tspan x="146.0" dy="22">py</tspan><tspan x="146.0" dy="22">importance_score, attention_weight</tspan></text>
+<text x="146.0" y="733.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">重要性标注 + 检索偏置</tspan><tspan x="146.0" dy="22">neuromem/core/</tspan><tspan x="146.0" dy="22">enhanced_memory_manager.py</tspan><tspan x="146.0" dy="22">importance_score</tspan><tspan x="146.0" dy="22">attention_weight</tspan></text>
 <path d="M 720.0 772.6 C 585.0 772.6, 665.0 882.0, 580.0 882.0" fill="none" stroke="#7c3aed" stroke-width="5" stroke-linecap="round"/>
 <circle cx="580.0" cy="882.0" r="8" fill="#7c3aed"/>
 <rect x="120.0" y="819.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#7c3aed" stroke-width="3" filter="url(#shadow)"/>
 <text x="146.0" y="853.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="146.0" dy="0">神经振荡 Neural Oscillations</tspan></text>
-<text x="146.0" y="885.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">脉冲放电 + 节律同步</tspan><tspan x="146.0" dy="22">neuromem/core/enhanced_memory_manager.</tspan><tspan x="146.0" dy="22">py</tspan><tspan x="146.0" dy="22">SpikingNeuralNetwork</tspan></text>
+<text x="146.0" y="885.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">脉冲放电 + 节律同步</tspan><tspan x="146.0" dy="22">neuromem/core/</tspan><tspan x="146.0" dy="22">enhanced_memory_manager.py</tspan><tspan x="146.0" dy="22">SpikingNeuralNetwork</tspan></text>
 <path d="M 720.0 815.1 C 585.0 815.1, 665.0 1034.0, 580.0 1034.0" fill="none" stroke="#dc2626" stroke-width="5" stroke-linecap="round"/>
 <circle cx="580.0" cy="1034.0" r="8" fill="#dc2626"/>
 <rect x="120.0" y="971.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#dc2626" stroke-width="3" filter="url(#shadow)"/>
 <text x="146.0" y="1005.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="146.0" dy="0">突触可塑性 Synaptic Plasticity</tspan></text>
-<text x="146.0" y="1037.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">时序依赖的连接更新</tspan><tspan x="146.0" dy="22">neuromem/core/enhanced_memory_manager.</tspan><tspan x="146.0" dy="22">py</tspan><tspan x="146.0" dy="22">STDPMechanism</tspan></text>
+<text x="146.0" y="1037.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="146.0" dy="0">时序依赖的连接更新</tspan><tspan x="146.0" dy="22">neuromem/core/</tspan><tspan x="146.0" dy="22">enhanced_memory_manager.py</tspan><tspan x="146.0" dy="22">STDPMechanism</tspan></text>
 <path d="M 1100.0 644.9 C 1235.0 644.9, 1155.0 426.0, 1240.0 426.0" fill="none" stroke="#0f766e" stroke-width="5" stroke-linecap="round"/>
 <circle cx="1240.0" cy="426.0" r="8" fill="#0f766e"/>
 <rect x="1240.0" y="363.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#0f766e" stroke-width="3" filter="url(#shadow)"/>
 <text x="1266.0" y="397.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="1266.0" dy="0">前额叶皮质 Prefrontal Cortex</tspan></text>
-<text x="1266.0" y="429.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">执行控制 + 注意力门控</tspan><tspan x="1266.0" dy="22">neuromem/core/enhanced_memory_manager.</tspan><tspan x="1266.0" dy="22">py</tspan><tspan x="1266.0" dy="22">AttentionGate</tspan></text>
+<text x="1266.0" y="429.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">执行控制 + 注意力门控</tspan><tspan x="1266.0" dy="22">neuromem/core/</tspan><tspan x="1266.0" dy="22">enhanced_memory_manager.py</tspan><tspan x="1266.0" dy="22">AttentionGate</tspan></text>
 <path d="M 1100.0 687.4 C 1235.0 687.4, 1155.0 578.0, 1240.0 578.0" fill="none" stroke="#0891b2" stroke-width="5" stroke-linecap="round"/>
 <circle cx="1240.0" cy="578.0" r="8" fill="#0891b2"/>
 <rect x="1240.0" y="515.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#0891b2" stroke-width="3" filter="url(#shadow)"/>
 <text x="1266.0" y="549.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="1266.0" dy="0">小脑 Cerebellum</tspan></text>
-<text x="1266.0" y="581.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">元学习调参 + 协调优化</tspan><tspan x="1266.0" dy="22">neuromem/core/enhanced_memory_manager.</tspan><tspan x="1266.0" dy="22">py</tspan><tspan x="1266.0" dy="22">MetaLearningController</tspan></text>
+<text x="1266.0" y="581.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">元学习调参 + 协调优化</tspan><tspan x="1266.0" dy="22">neuromem/core/</tspan><tspan x="1266.0" dy="22">enhanced_memory_manager.py</tspan><tspan x="1266.0" dy="22">MetaLearningController</tspan></text>
 <path d="M 1100.0 730.0 C 1235.0 730.0, 1155.0 730.0, 1240.0 730.0" fill="none" stroke="#ca8a04" stroke-width="5" stroke-linecap="round"/>
 <circle cx="1240.0" cy="730.0" r="8" fill="#ca8a04"/>
 <rect x="1240.0" y="667.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#ca8a04" stroke-width="3" filter="url(#shadow)"/>
 <text x="1266.0" y="701.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="1266.0" dy="0">颞叶 Temporal Lobe</tspan></text>
-<text x="1266.0" y="733.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">语言模式预测 + 状态外推</tspan><tspan x="1266.0" dy="22">neuromem/core/hierarchical_memory.py</tspan><tspan x="1266.0" dy="22">PredictionEngine</tspan></text>
+<text x="1266.0" y="733.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">语言模式预测 + 状态外推</tspan><tspan x="1266.0" dy="22">neuromem/core/</tspan><tspan x="1266.0" dy="22">hierarchical_memory.py</tspan><tspan x="1266.0" dy="22">PredictionEngine</tspan></text>
 <path d="M 1100.0 772.6 C 1235.0 772.6, 1155.0 882.0, 1240.0 882.0" fill="none" stroke="#9333ea" stroke-width="5" stroke-linecap="round"/>
 <circle cx="1240.0" cy="882.0" r="8" fill="#9333ea"/>
 <rect x="1240.0" y="819.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#9333ea" stroke-width="3" filter="url(#shadow)"/>
 <text x="1266.0" y="853.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="1266.0" dy="0">顶叶 Parietal Lobe</tspan></text>
-<text x="1266.0" y="885.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">跨脑区协调 + 注意定向</tspan><tspan x="1266.0" dy="22">neuromem/core/hierarchical_memory.py</tspan><tspan x="1266.0" dy="22">coordinate_regions()</tspan></text>
+<text x="1266.0" y="885.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">跨脑区协调 + 注意定向</tspan><tspan x="1266.0" dy="22">neuromem/core/</tspan><tspan x="1266.0" dy="22">hierarchical_memory.py</tspan><tspan x="1266.0" dy="22">coordinate_regions()</tspan></text>
 <path d="M 1100.0 815.1 C 1235.0 815.1, 1155.0 1034.0, 1240.0 1034.0" fill="none" stroke="#be123c" stroke-width="5" stroke-linecap="round"/>
 <circle cx="1240.0" cy="1034.0" r="8" fill="#be123c"/>
 <rect x="1240.0" y="971.0" width="460" height="126" rx="22" fill="#ffffff" stroke="#be123c" stroke-width="3" filter="url(#shadow)"/>
 <text x="1266.0" y="1005.0" text-anchor="start" font-size="24" font-weight="780" fill="#0f172a"><tspan x="1266.0" dy="0">预测编码 Predictive Coding</tspan></text>
-<text x="1266.0" y="1037.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">预测误差驱动存储</tspan><tspan x="1266.0" dy="22">neuromem/core/hierarchical_memory.py</tspan><tspan x="1266.0" dy="22">_evaluate_storage_necessity()</tspan></text>
+<text x="1266.0" y="1037.0" text-anchor="start" font-size="16" font-weight="520" fill="#334155"><tspan x="1266.0" dy="0">预测误差驱动存储</tspan><tspan x="1266.0" dy="22">neuromem/core/</tspan><tspan x="1266.0" dy="22">hierarchical_memory.py</tspan><tspan x="1266.0" dy="22">_evaluate_storage_necessity()</tspan></text>
 <text x="910.0" y="1424" text-anchor="middle" font-size="16" font-weight="500" fill="#64748b" font-family="Segoe UI, PingFang SC, Microsoft YaHei, sans-serif">Generated from scripts/render_brain_region_mindmap.py</text>
 </svg>

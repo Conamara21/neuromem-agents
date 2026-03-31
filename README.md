@@ -7,7 +7,7 @@ A developer-focused memory layer for AI agents that adds session-scoped recall, 
 
 Brain-inspired subsystem map:
 
-![NeuroMem brain-inspired structure map](docs/neuromem_brain_regions_mindmap_en.svg)
+![NeuroMem brain-inspired structure map](docs/neuromem_brain_regions_mindmap_en.png)
 
 This diagram maps the organ-level analogy layer to the current implementation modules. [Mermaid source](docs/neuromem_brain_regions_mindmap_en.md) and [generator](scripts/render_brain_region_mindmap.py).
 
@@ -552,7 +552,7 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 脑启发结构图：
 
-![NeuroMem 脑启发结构图](docs/neuromem_brain_regions_mindmap.svg)
+![NeuroMem 脑启发结构图](docs/neuromem_brain_regions_mindmap.png)
 
 这张图把器官级类比和当前实现模块对应起来了。[Mermaid 源码](docs/neuromem_brain_regions_mindmap.md) 与 [生成脚本](scripts/render_brain_region_mindmap.py)。
 
