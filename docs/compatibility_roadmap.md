@@ -69,7 +69,15 @@ This roadmap turns NeuroMem from a research-oriented memory module into a practi
 - Built-in observability for retrieval latency, memory hit rate, request counts, and write behavior.
 - MCP observability tool and resource so IDE agents can inspect runtime state directly.
 
-## Phase 4: Next Expansion
+## Phase 4: Shipping Now
 
-- LlamaIndex adapter for using NeuroMem as long-term conversational memory.
-- Prebuilt IDE config packs for VS Code, JetBrains AI Assistant, and other MCP clients.
+- LlamaIndex adapter with a session-scoped retriever and proxy-backed query-engine helper.
+- Ready-to-use VS Code MCP config packs for both `stdio` and `streamable-http`.
+- Ready-to-use JetBrains AI Assistant MCP import files for both `stdio` and `streamable-http`.
+- Config-file-relative `db_path` resolution so IDE launches stay stable across working directories.
+
+## Phase 5: Next Expansion
+
+- Additional framework adapters for ecosystems such as Haystack, AutoGen, and CrewAI.
+- Optional remote MCP auth and deployment hardening for shared team environments.
+- Exporters for external observability stacks beyond the built-in in-process metrics snapshot.

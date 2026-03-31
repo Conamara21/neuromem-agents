@@ -26,6 +26,9 @@ _EXPORTS = {
     "build_mcp_server": (".mcp", "build_mcp_server"),
     "NeuroMemRetriever": (".frameworks", "NeuroMemRetriever"),
     "create_langchain_chat_openai": (".frameworks", "create_langchain_chat_openai"),
+    "NeuroMemLlamaIndexRetriever": (".frameworks", "NeuroMemLlamaIndexRetriever"),
+    "create_llamaindex_openai_like": (".frameworks", "create_llamaindex_openai_like"),
+    "create_llamaindex_query_engine": (".frameworks", "create_llamaindex_query_engine"),
 }
 
 __all__ = [
@@ -48,6 +51,9 @@ __all__ = [
     "build_mcp_server",
     "NeuroMemRetriever",
     "create_langchain_chat_openai",
+    "NeuroMemLlamaIndexRetriever",
+    "create_llamaindex_openai_like",
+    "create_llamaindex_query_engine",
 ]
 
 

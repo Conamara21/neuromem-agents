@@ -16,14 +16,16 @@ System architecture at a glance:
 - **Upstream chat providers**: OpenAI, Anthropic, Gemini, Ollama, LM Studio, and vLLM
 - **Client compatibility**: Python and JavaScript projects that already use an OpenAI-compatible `base_url`
 - **MCP compatibility**: local `stdio` and remote `streamable-http` transports for IDE agents and MCP runtimes
-- **Framework compatibility**: first-party LangChain retriever and OpenAI-compatible chat helper
+- **Framework compatibility**: first-party LangChain and LlamaIndex adapters with OpenAI-compatible chat helpers
+- **IDE compatibility**: ready-to-use VS Code and JetBrains MCP config packs in `examples/ide/*`
 - **Deployment compatibility**: Docker image and `docker compose` / `docker-compose` template for one-command startup
 - **API surface**: `/v1/chat/completions`, `/v1/responses`, `/v1/memory/records`, `/v1/memory/search`, `/v1/memory/stats`
 - **Observability**: JSON and Prometheus metrics endpoints for retrieval and request behavior
 - **Configuration model**: provider-agnostic JSON config with environment variable overrides
-- **Examples**: `examples/configs/*.example.json` and `examples/compatibility/*`
+- **Examples**: `examples/configs/*.example.json`, `examples/compatibility/*`, and `examples/ide/*`
 - **MCP docs**: `docs/mcp_integration.md`
 - **LangChain docs**: `docs/langchain_integration.md`
+- **LlamaIndex docs**: `docs/llamaindex_integration.md`
 - **Docker docs**: `docs/docker_deployment.md`
 - **Roadmap**: `docs/compatibility_roadmap.md`
 
@@ -108,6 +110,8 @@ pip install 'neuromem-agents[server]'
 pip install 'neuromem-agents[mcp]'
 # or install the LangChain adapter
 pip install 'neuromem-agents[langchain]'
+# or install the LlamaIndex adapter
+pip install 'neuromem-agents[llamaindex]'
 ```
 
 ### OpenAI-Compatible Proxy
@@ -183,11 +187,18 @@ The default MCP HTTP endpoint is `http://127.0.0.1:8765/mcp`.
 
 What it exposes:
 
-- Tools: `create_memory`, `search_memory`, `list_memories`, `associate_memories`, `get_memory_stats`, `consolidate_memory`
-- Resources: `memory://stats/overview`, `memory://sessions/{session_id}/summary`, `memory://records/{memory_id}`
+- Tools: `create_memory`, `search_memory`, `list_memories`, `associate_memories`, `get_memory_stats`, `get_observability_metrics`, `consolidate_memory`
+- Resources: `memory://stats/overview`, `memory://stats/observability`, `memory://sessions/{session_id}/summary`, `memory://records/{memory_id}`
 - Prompts: `memory_recall_query`, `project_handoff_brief`
 
-See `docs/mcp_integration.md` for VS Code and JetBrains setup examples.
+Ready-to-use client config packs:
+
+- `examples/ide/vscode/mcp_stdio.example.json`
+- `examples/ide/vscode/mcp_streamable_http.example.json`
+- `examples/ide/jetbrains/mcp_stdio.example.json`
+- `examples/ide/jetbrains/mcp_streamable_http.example.json`
+
+See `docs/mcp_integration.md` for VS Code and JetBrains setup details.
 
 ### Observability
 
@@ -260,6 +271,51 @@ See `docs/langchain_integration.md` and:
 
 - `examples/compatibility/langchain_retriever.py`
 - `examples/compatibility/langchain_chat_openai.py`
+
+### LlamaIndex Integration
+
+Use NeuroMem as a LlamaIndex retriever:
+
+```python
+from neuromem.frameworks import NeuroMemLlamaIndexRetriever
+
+retriever = NeuroMemLlamaIndexRetriever(
+    settings_path="examples/configs/openai_proxy.example.json",
+    session_id="demo-project",
+    top_k=5,
+)
+
+nodes = retriever.retrieve("architecture decision")
+```
+
+Or build a LlamaIndex query engine against the NeuroMem proxy:
+
+```python
+from neuromem.frameworks import (
+    NeuroMemLlamaIndexRetriever,
+    create_llamaindex_openai_like,
+    create_llamaindex_query_engine,
+)
+
+retriever = NeuroMemLlamaIndexRetriever(
+    settings_path="examples/configs/openai_proxy.example.json",
+    session_id="demo-project",
+    top_k=5,
+)
+
+llm = create_llamaindex_openai_like(
+    model="your-upstream-model",
+    base_url="http://127.0.0.1:8080/v1",
+    api_key="neuromem-local",
+)
+
+query_engine = create_llamaindex_query_engine(retriever, llm=llm)
+```
+
+See `docs/llamaindex_integration.md` and:
+
+- `examples/compatibility/llamaindex_retriever.py`
+- `examples/compatibility/llamaindex_query_engine.py`
 
 ### Basic Usage
 
@@ -548,14 +604,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **上游聊天模型**：OpenAI、Anthropic、Gemini、Ollama、LM Studio、vLLM
 - **客户端兼容性**：已支持 OpenAI-compatible `base_url` 的 Python / JavaScript / IDE / agent 工作流
 - **MCP 兼容性**：支持本地 `stdio` 和远程 `streamable-http`，可接 IDE agent 与 MCP runtime
-- **框架兼容性**：内置 LangChain retriever 和 OpenAI-compatible chat helper
+- **框架兼容性**：内置 LangChain 与 LlamaIndex 适配层，以及 OpenAI-compatible chat helper
+- **IDE 兼容性**：提供可直接复用的 VS Code / JetBrains MCP 配置包，位于 `examples/ide/*`
 - **部署兼容性**：提供 Docker 镜像与 `docker compose` / `docker-compose` 模板
 - **API 入口**：`/v1/chat/completions`、`/v1/responses`、`/v1/memory/records`、`/v1/memory/search`、`/v1/memory/stats`
 - **可观测性**：提供 JSON 与 Prometheus 两种 metrics 输出
 - **配置方式**：统一 JSON 配置，加环境变量覆盖
-- **示例目录**：`examples/configs/*.example.json` 与 `examples/compatibility/*`
+- **示例目录**：`examples/configs/*.example.json`、`examples/compatibility/*` 与 `examples/ide/*`
 - **MCP 文档**：`docs/mcp_integration.md`
 - **LangChain 文档**：`docs/langchain_integration.md`
+- **LlamaIndex 文档**：`docs/llamaindex_integration.md`
 - **Docker 文档**：`docs/docker_deployment.md`
 - **路线图**：`docs/compatibility_roadmap.md`
 
@@ -640,6 +698,8 @@ pip install 'neuromem-agents[server]'
 pip install 'neuromem-agents[mcp]'
 # 或安装 LangChain 适配层
 pip install 'neuromem-agents[langchain]'
+# 或安装 LlamaIndex 适配层
+pip install 'neuromem-agents[llamaindex]'
 ```
 
 ### OpenAI-Compatible 代理服务
@@ -715,11 +775,18 @@ neuromem-mcp-server \
 
 它暴露的能力包括：
 
-- Tools：`create_memory`、`search_memory`、`list_memories`、`associate_memories`、`get_memory_stats`、`consolidate_memory`
-- Resources：`memory://stats/overview`、`memory://sessions/{session_id}/summary`、`memory://records/{memory_id}`
+- Tools：`create_memory`、`search_memory`、`list_memories`、`associate_memories`、`get_memory_stats`、`get_observability_metrics`、`consolidate_memory`
+- Resources：`memory://stats/overview`、`memory://stats/observability`、`memory://sessions/{session_id}/summary`、`memory://records/{memory_id}`
 - Prompts：`memory_recall_query`、`project_handoff_brief`
 
-VS Code 和 JetBrains 的接入示例见 `docs/mcp_integration.md`。
+现成配置包位于：
+
+- `examples/ide/vscode/mcp_stdio.example.json`
+- `examples/ide/vscode/mcp_streamable_http.example.json`
+- `examples/ide/jetbrains/mcp_stdio.example.json`
+- `examples/ide/jetbrains/mcp_streamable_http.example.json`
+
+VS Code 和 JetBrains 的接入细节见 `docs/mcp_integration.md`。
 
 ### 可观测性
 
@@ -792,6 +859,51 @@ llm = create_langchain_chat_openai(
 
 - `examples/compatibility/langchain_retriever.py`
 - `examples/compatibility/langchain_chat_openai.py`
+
+### LlamaIndex 集成
+
+把 NeuroMem 当作 LlamaIndex retriever 使用：
+
+```python
+from neuromem.frameworks import NeuroMemLlamaIndexRetriever
+
+retriever = NeuroMemLlamaIndexRetriever(
+    settings_path="examples/configs/openai_proxy.example.json",
+    session_id="demo-project",
+    top_k=5,
+)
+
+nodes = retriever.retrieve("architecture decision")
+```
+
+或基于 NeuroMem proxy 构建 LlamaIndex query engine：
+
+```python
+from neuromem.frameworks import (
+    NeuroMemLlamaIndexRetriever,
+    create_llamaindex_openai_like,
+    create_llamaindex_query_engine,
+)
+
+retriever = NeuroMemLlamaIndexRetriever(
+    settings_path="examples/configs/openai_proxy.example.json",
+    session_id="demo-project",
+    top_k=5,
+)
+
+llm = create_llamaindex_openai_like(
+    model="your-upstream-model",
+    base_url="http://127.0.0.1:8080/v1",
+    api_key="neuromem-local",
+)
+
+query_engine = create_llamaindex_query_engine(retriever, llm=llm)
+```
+
+详见 `docs/llamaindex_integration.md` 与：
+
+- `examples/compatibility/llamaindex_retriever.py`
+- `examples/compatibility/llamaindex_query_engine.py`
 
 ### 基础使用
 

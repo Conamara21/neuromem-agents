@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "neuromem": {
+      "command": "<ABSOLUTE_PATH_TO_REPO>/venv/bin/neuromem-mcp-server",
+      "args": [
+        "--config",
+        "<ABSOLUTE_PATH_TO_REPO>/examples/configs/mcp_stdio.example.json",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "NEUROMEM_MEMORY_DB_PATH": "<ABSOLUTE_PATH_TO_REPO>/neuromem_mcp.db",
+        "NEUROMEM_MCP_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

@@ -81,6 +81,25 @@ def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any
     return merged
 
 
+def _resolve_relative_db_path(payload: Dict[str, Any], config_path: str) -> Dict[str, Any]:
+    memory_payload = payload.get("memory")
+    if not isinstance(memory_payload, dict):
+        return payload
+
+    db_path = memory_payload.get("db_path")
+    if not isinstance(db_path, str):
+        return payload
+
+    expanded = os.path.expanduser(db_path)
+    if expanded == ":memory:" or os.path.isabs(expanded):
+        memory_payload["db_path"] = expanded
+        return payload
+
+    base_dir = os.path.dirname(os.path.abspath(config_path))
+    memory_payload["db_path"] = os.path.normpath(os.path.join(base_dir, expanded))
+    return payload
+
+
 def _environment_payload(include_defaults: bool) -> Dict[str, Any]:
     def read_env(name: str, default: Optional[str] = None) -> Optional[str]:
         if include_defaults:
@@ -333,6 +352,7 @@ class NeuromemSettings:
     def from_file(cls, path: str) -> "NeuromemSettings":
         with open(path, "r", encoding="utf-8") as handle:
             payload = json.load(handle)
+        payload = _resolve_relative_db_path(payload, path)
         return cls.from_dict(payload)
 
     @classmethod
@@ -350,6 +370,7 @@ def load_settings(config_path: Optional[str] = None) -> NeuromemSettings:
     if config_path:
         with open(config_path, "r", encoding="utf-8") as handle:
             file_payload = json.load(handle)
+        file_payload = _resolve_relative_db_path(file_payload, config_path)
 
     if not config_path:
         return NeuromemSettings.from_env()

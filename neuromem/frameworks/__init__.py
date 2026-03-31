@@ -7,6 +7,9 @@ from importlib import import_module
 _EXPORTS = {
     "NeuroMemRetriever": (".langchain", "NeuroMemRetriever"),
     "create_langchain_chat_openai": (".langchain", "create_langchain_chat_openai"),
+    "NeuroMemLlamaIndexRetriever": (".llamaindex", "NeuroMemLlamaIndexRetriever"),
+    "create_llamaindex_openai_like": (".llamaindex", "create_llamaindex_openai_like"),
+    "create_llamaindex_query_engine": (".llamaindex", "create_llamaindex_query_engine"),
 }
 
 __all__ = list(_EXPORTS.keys())

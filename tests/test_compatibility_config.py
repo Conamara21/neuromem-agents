@@ -38,9 +38,28 @@ class CompatibilityConfigTests(unittest.TestCase):
             self.assertEqual(settings.chat_model.model, "qwen2.5-coder")
             self.assertEqual(settings.chat_model.base_url, "http://localhost:11435/v1")
             self.assertEqual(settings.server.port, 9999)
-            self.assertEqual(settings.memory.db_path, "custom_proxy.db")
+            self.assertEqual(
+                settings.memory.db_path,
+                os.path.join(os.path.dirname(config_path), "custom_proxy.db"),
+            )
         finally:
             os.unlink(config_path)
+
+    def test_relative_db_path_resolves_from_config_directory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            config_dir = os.path.join(temp_dir, "configs")
+            os.makedirs(config_dir, exist_ok=True)
+            config_path = os.path.join(config_dir, "proxy.json")
+            with open(config_path, "w", encoding="utf-8") as handle:
+                json.dump({"memory": {"db_path": "../state/neuromem.db"}}, handle)
+
+            with patch.dict(os.environ, {}, clear=True):
+                settings = load_settings(config_path)
+
+            self.assertEqual(
+                settings.memory.db_path,
+                os.path.normpath(os.path.join(config_dir, "../state/neuromem.db")),
+            )
 
     def test_env_overrides_specific_fields(self):
         payload = {

@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "neuromem": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/venv/bin/neuromem-mcp-server",
+      "args": [
+        "--config",
+        "${workspaceFolder}/examples/configs/mcp_stdio.example.json",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "NEUROMEM_MEMORY_DB_PATH": "${workspaceFolder}/neuromem_mcp.db",
+        "NEUROMEM_MCP_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}
