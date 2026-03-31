@@ -1,178 +1,325 @@
 """
-Visualization script for NeuroMem vs Traditional RAG comparison results
+Generate visualizations from rigorous benchmark JSON outputs.
 """
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+from typing import Dict, Iterable, List, Sequence
+
+os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib-cache")
+
+import matplotlib
+
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
-import json
-from datetime import datetime
-from pathlib import Path
 
 
-def create_visualization():
-    """Create visualizations for benchmark results"""
+DEFAULT_RESULTS = "benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json"
+SYSTEM_ORDER = [
+    "traditional_rag",
+    "neuromem_in_memory",
+    "neuromem_persistent",
+]
+SYSTEM_LABELS = {
+    "traditional_rag": "Traditional RAG",
+    "neuromem_in_memory": "NeuroMem In-Memory",
+    "neuromem_persistent": "NeuroMem Persistent",
+}
+SYSTEM_COLORS = {
+    "traditional_rag": "#D65A31",
+    "neuromem_in_memory": "#1F6FEB",
+    "neuromem_persistent": "#2E8B57",
+}
+
+
+def latest_result_path(base_dir: Path) -> Path:
+    results_dir = base_dir / "benchmark_results"
+    preferred = results_dir / "rigorous_efficiency_benchmark_tfidf_optimized.json"
+    if preferred.exists():
+        return preferred
+
+    candidates = sorted(results_dir.glob("rigorous_efficiency_benchmark*.json"))
+    if not candidates:
+        raise FileNotFoundError("No benchmark JSON files found under benchmark_results/")
+    return candidates[-1]
+
+
+def load_results(path: Path) -> Dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def ordered_sizes(summary: Dict[str, Dict]) -> List[int]:
+    return sorted(int(size) for size in summary.keys())
+
+
+def available_systems(summary: Dict[str, Dict]) -> List[str]:
+    present = set()
+    for metrics in summary.values():
+        present.update(metrics.keys())
+    return [system for system in SYSTEM_ORDER if system in present]
+
+
+def metric_series(
+    summary: Dict[str, Dict],
+    sizes: Sequence[int],
+    system: str,
+    metric: str,
+    reducer: str = "mean",
+    scale: float = 1.0,
+) -> List[float]:
+    values = []
+    for size in sizes:
+        metric_summary = summary[str(size)][system][metric]
+        values.append(float(metric_summary[reducer]) * scale)
+    return values
+
+
+def annotate_line(ax, x_values: Sequence[float], y_values: Sequence[float], suffix: str = ""):
+    for x_value, y_value in zip(x_values, y_values):
+        ax.annotate(
+            f"{y_value:.2f}{suffix}",
+            (x_value, y_value),
+            textcoords="offset points",
+            xytext=(0, 6),
+            ha="center",
+            fontsize=8,
+        )
+
+
+def plot_absolute_metrics(summary: Dict[str, Dict], sizes: Sequence[int], systems: Sequence[str], output_path: Path):
+    figure, axes = plt.subplots(2, 2, figsize=(14, 10))
+    figure.suptitle("Rigorous Benchmark: Absolute Metrics", fontsize=16, fontweight="bold")
+
+    charts = [
+        ("exact_retrieval_latency_ns", "p95", 1e-6, "Exact Retrieval p95 (ms)"),
+        ("topic_retrieval_latency_ns", "p95", 1e-6, "Topic Retrieval p95 (ms)"),
+        ("total_build_time_s", "mean", 1.0, "Build Time Mean (s)"),
+        ("primed_neighbor_recall_at_5", "mean", 1.0, "Primed Neighbor Recall@5"),
+    ]
+
+    for axis, (metric, reducer, scale, title) in zip(axes.flat, charts):
+        for system in systems:
+            values = metric_series(summary, sizes, system, metric, reducer=reducer, scale=scale)
+            axis.plot(
+                sizes,
+                values,
+                marker="o",
+                linewidth=2.3,
+                color=SYSTEM_COLORS[system],
+                label=SYSTEM_LABELS[system],
+            )
+            annotate_line(axis, sizes, values, "" if scale == 1.0 else "")
+
+        axis.set_title(title)
+        axis.set_xlabel("Corpus Size")
+        axis.grid(alpha=0.25)
+
+    axes[0, 0].set_ylabel("Milliseconds")
+    axes[0, 1].set_ylabel("Milliseconds")
+    axes[1, 0].set_ylabel("Seconds")
+    axes[1, 1].set_ylabel("Recall")
+    axes[1, 1].set_ylim(0.0, 1.05)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    figure.legend(handles, labels, loc="upper center", ncol=len(handles), frameon=False)
+    figure.tight_layout(rect=(0, 0, 1, 0.93))
+    figure.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(figure)
+
+
+def plot_ratio_metrics(summary: Dict[str, Dict], sizes: Sequence[int], systems: Sequence[str], output_path: Path):
+    baseline = "traditional_rag"
+    comparison_systems = [system for system in systems if system != baseline]
+    if not comparison_systems:
+        return
+
+    figure, axes = plt.subplots(2, 2, figsize=(14, 10))
+    figure.suptitle("Rigorous Benchmark: NeuroMem vs Traditional Ratios", fontsize=16, fontweight="bold")
+
+    charts = [
+        ("exact_retrieval_latency_ns", "p95", 1.0, "Exact Retrieval p95 Ratio"),
+        ("topic_retrieval_latency_ns", "p95", 1.0, "Topic Retrieval p95 Ratio"),
+        ("total_build_time_s", "mean", 1.0, "Build Time Ratio"),
+        ("primed_neighbor_recall_at_5", "mean", -1.0, "Neighbor Recall Ratio"),
+    ]
+
+    baseline_color = "#6E7781"
+    for axis, (metric, reducer, direction, title) in zip(axes.flat, charts):
+        axis.axhline(1.0, color=baseline_color, linestyle="--", linewidth=1.0)
+        for system in comparison_systems:
+            baseline_values = metric_series(summary, sizes, baseline, metric, reducer=reducer)
+            system_values = metric_series(summary, sizes, system, metric, reducer=reducer)
+            if direction > 0:
+                ratio_values = [
+                    system_value / baseline_value if baseline_value else 0.0
+                    for system_value, baseline_value in zip(system_values, baseline_values)
+                ]
+                better_text = "< 1 is better"
+            else:
+                ratio_values = [
+                    system_value / baseline_value if baseline_value else 0.0
+                    for system_value, baseline_value in zip(system_values, baseline_values)
+                ]
+                better_text = "> 1 is better"
+
+            axis.plot(
+                sizes,
+                ratio_values,
+                marker="o",
+                linewidth=2.3,
+                color=SYSTEM_COLORS[system],
+                label=SYSTEM_LABELS[system],
+            )
+            annotate_line(axis, sizes, ratio_values)
+
+        axis.set_title(f"{title} ({better_text})")
+        axis.set_xlabel("Corpus Size")
+        axis.set_ylabel("Ratio vs Traditional")
+        axis.grid(alpha=0.25)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    figure.legend(handles, labels, loc="upper center", ncol=len(handles), frameon=False)
+    figure.tight_layout(rect=(0, 0, 1, 0.93))
+    figure.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(figure)
+
+
+def plot_memory_footprint(summary: Dict[str, Dict], sizes: Sequence[int], systems: Sequence[str], output_path: Path):
+    x_positions = np.arange(len(sizes))
+    width = 0.25 if len(systems) >= 3 else 0.35
+
+    figure, axes = plt.subplots(1, 2, figsize=(14, 5.5))
+    figure.suptitle("Rigorous Benchmark: Memory and Persistence Footprint", fontsize=16, fontweight="bold")
+
+    for index, system in enumerate(systems):
+        offset = (index - (len(systems) - 1) / 2) * width
+        heap_values = metric_series(summary, sizes, system, "python_bytes_after_ingest", scale=1 / (1024 * 1024))
+        db_values = metric_series(summary, sizes, system, "db_file_bytes", scale=1 / (1024 * 1024))
+
+        axes[0].bar(
+            x_positions + offset,
+            heap_values,
+            width=width,
+            color=SYSTEM_COLORS[system],
+            label=SYSTEM_LABELS[system],
+        )
+        axes[1].bar(
+            x_positions + offset,
+            db_values,
+            width=width,
+            color=SYSTEM_COLORS[system],
+            label=SYSTEM_LABELS[system],
+        )
+
+    for axis, title in zip(
+        axes,
+        ["Python Heap After Ingest (MiB)", "Database Footprint (MiB)"],
+    ):
+        axis.set_title(title)
+        axis.set_xticks(x_positions)
+        axis.set_xticklabels([str(size) for size in sizes])
+        axis.set_xlabel("Corpus Size")
+        axis.grid(axis="y", alpha=0.25)
+
+    axes[0].set_ylabel("MiB")
+    axes[1].set_ylabel("MiB")
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    figure.legend(handles, labels, loc="upper center", ncol=len(handles), frameon=False)
+    figure.tight_layout(rect=(0, 0, 1, 0.90))
+    figure.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(figure)
+
+
+def build_summary_text(results: Dict, input_path: Path, output_paths: Iterable[Path]) -> str:
+    summary = results["summary"]
+    sizes = ordered_sizes(summary)
+    systems = available_systems(summary)
+    lines = [
+        "Rigorous Benchmark Visualization Summary",
+        f"Source JSON: {input_path}",
+        f"Embedding backend: {results['config']['embedding_backend']}",
+        f"Sizes: {', '.join(str(size) for size in sizes)}",
+        "",
+    ]
+
+    for size in sizes:
+        lines.append(f"Corpus Size {size}")
+        size_summary = summary[str(size)]
+        for system in systems:
+            metrics = size_summary[system]
+            lines.append(
+                f"- {SYSTEM_LABELS[system]}: build {metrics['total_build_time_s']['mean']:.3f}s, "
+                f"exact p95 {metrics['exact_retrieval_latency_ns']['p95'] / 1e6:.3f}ms, "
+                f"topic p95 {metrics['topic_retrieval_latency_ns']['p95'] / 1e6:.3f}ms, "
+                f"neighbor recall {metrics['primed_neighbor_recall_at_5']['mean']:.3f}"
+            )
+        lines.append("")
+
+    lines.append("Generated files:")
+    for output_path in output_paths:
+        lines.append(f"- {output_path}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def default_output_stem(input_path: Path) -> Path:
+    return input_path.with_suffix("")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Visualize rigorous benchmark results")
+    parser.add_argument(
+        "--input",
+        help="Path to a rigorous benchmark JSON file. Defaults to the latest benchmark result.",
+    )
+    parser.add_argument(
+        "--output-stem",
+        help="Output path stem. Example: benchmark_results/my_run",
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
     base_dir = Path(__file__).resolve().parent
-    
-    # Sample data based on our tests
-    categories = ['Token Efficiency', 'Memory Usage', 'Retrieval Speed']
-    
-    # Ratios (NeuroMem / Traditional) - Values < 1.0 favor NeuroMem
-    # From our benchmark tests
-    ratios = [1.04, 1.70, 1.18]  # [token_efficiency, memory_usage, speed]
-    
-    # Invert memory and speed ratios so < 1.0 always favors NeuroMem
-    # (since lower values are better for memory and speed)
-    display_ratios = [ratios[0], 1/ratios[1], 1/ratios[2]]  # token, inverted memory, inverted speed
-    
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
-    fig.suptitle('NeuroMem-Agents vs Traditional RAG: Performance Comparison', fontsize=16, fontweight='bold')
-    
-    # 1. Performance ratios bar chart
-    bars = ax1.bar(categories, display_ratios, color=['skyblue', 'lightgreen', 'salmon'])
-    ax1.axhline(y=1.0, color='red', linestyle='--', label='Equal Performance')
-    ax1.set_ylabel('Ratio (NeuroMem/Traditional)')
-    ax1.set_title('Performance Ratios (Lower is Better for NeuroMem)')
-    ax1.legend()
-    ax1.grid(axis='y', alpha=0.3)
-    
-    # Add value labels on bars
-    for bar, ratio in zip(bars, display_ratios):
-        height = bar.get_height()
-        ax1.text(bar.get_x() + bar.get_width()/2., height,
-                f'{ratio:.2f}', ha='center', va='bottom')
-    
-    # 2. Token consumption comparison
-    labels = ['NeuroMem', 'Traditional']
-    tokens = [367, 353]  # From advanced benchmark
-    ax2.bar(labels, tokens, color=['skyblue', 'lightcoral'])
-    ax2.set_ylabel('Tokens Consumed')
-    ax2.set_title('Total Token Consumption')
-    ax2.grid(axis='y', alpha=0.3)
-    
-    # Add value labels
-    for i, v in enumerate(tokens):
-        ax2.text(i, v + 5, str(v), ha='center', va='bottom')
-    
-    # 3. Memory usage comparison
-    memory_bytes = [17480, 9787]  # From advanced benchmark
-    ax3.bar(labels, memory_bytes, color=['lightgreen', 'lightcoral'])
-    ax3.set_ylabel('Memory Usage (bytes)')
-    ax3.set_title('Memory Usage Comparison')
-    ax3.grid(axis='y', alpha=0.3)
-    
-    # Add value labels
-    for i, v in enumerate(memory_bytes):
-        ax3.text(i, v + 200, f'{v/1000:.1f}k', ha='center', va='bottom')
-    
-    # 4. Complex scenario advantages
-    scenario_labels = ['Simple Queries', 'Complex Queries', 'Associative Retrieval', 'Contextual Understanding']
-    neuro_advantages = [0.96, 1.2, 2.0, 2.5]  # Estimated advantage ratios
-    
-    colors = ['lightcoral', 'lightgreen', 'lightgreen', 'lightgreen']  # Red if < 1.0, green if > 1.0
-    bars4 = ax4.bar(scenario_labels, neuro_advantages, color=colors)
-    ax4.axhline(y=1.0, color='red', linestyle='--', label='Equal Performance')
-    ax4.set_ylabel('Advantage Ratio')
-    ax4.set_title('NeuroMem Advantages in Different Scenarios\n(Green > 1.0: NeuroMem Wins, Red < 1.0: Traditional Wins)')
-    ax4.legend()
-    ax4.grid(axis='y', alpha=0.3)
-    
-    # Add value labels
-    for bar, val in zip(bars4, neuro_advantages):
-        height = bar.get_height()
-        ax4.text(bar.get_x() + bar.get_width()/2., height,
-                f'{val:.2f}', ha='center', va='bottom')
-    
-    plt.tight_layout()
-    plt.savefig(base_dir / "benchmark_visualization.png", dpi=300, bbox_inches='tight')
-    plt.show()
-    
-    print("📊 Visualization saved as 'benchmark_visualization.png'")
-    print("\n📋 Summary of Results:")
-    print(f"Token Efficiency Ratio: {ratios[0]:.2f}x (Traditional better)")
-    print(f"Memory Usage Ratio: {ratios[1]:.2f}x (Traditional more efficient)")
-    print(f"Speed Ratio: {ratios[2]:.2f}x (Traditional faster)")
-    print("\nHowever, in complex interconnected scenarios, NeuroMem shows advantages in:")
-    print("- Associative retrieval")
-    print("- Contextual understanding") 
-    print("- Handling complex queries")
-    print("- Network effects with increasing complexity")
+    input_path = Path(args.input).resolve() if args.input else latest_result_path(base_dir)
+    results = load_results(input_path)
 
+    summary = results["summary"]
+    sizes = ordered_sizes(summary)
+    systems = available_systems(summary)
 
-def install_requirements():
-    """Install visualization libraries"""
-    try:
-        import matplotlib
-        import numpy
-        print("✅ Required libraries already installed")
-        return True
-    except ImportError:
-        print("❌ Required libraries not found. Install with:")
-        print("pip3 install matplotlib numpy")
-        return False
+    output_stem = Path(args.output_stem).resolve() if args.output_stem else default_output_stem(input_path)
+    output_stem.parent.mkdir(parents=True, exist_ok=True)
 
+    absolute_path = output_stem.with_name(f"{output_stem.name}_absolute.png")
+    ratios_path = output_stem.with_name(f"{output_stem.name}_ratios.png")
+    footprint_path = output_stem.with_name(f"{output_stem.name}_footprint.png")
+    summary_path = output_stem.with_name(f"{output_stem.name}_visualization_summary.txt")
 
-def run_detailed_analysis():
-    """Run detailed analysis and save results"""
-    print("🔬 Running detailed analysis...")
-    base_dir = Path(__file__).resolve().parent
-    
-    # This would contain the actual analysis logic
-    analysis_results = {
-        "timestamp": datetime.now().isoformat(),
-        "test_type": "comprehensive_comparison",
-        "neuromem_results": {
-            "total_tokens": 367,
-            "memory_usage_bytes": 17480,
-            "retrieval_time_seconds": 0.0018,
-            "associative_connections": 40,
-            "accuracy_complex_queries": 0.85
-        },
-        "traditional_results": {
-            "total_tokens": 353,
-            "memory_usage_bytes": 9787,
-            "retrieval_time_seconds": 0.0013,
-            "associative_connections": 0,
-            "accuracy_complex_queries": 0.72
-        },
-        "comparison_notes": [
-            "Traditional RAG performs better in simple keyword matching",
-            "NeuroMem excels in complex, interconnected queries",
-            "Associative retrieval provides contextual advantages",
-            "Memory usage is higher due to connection storage",
-            "Complex scenario performance favors NeuroMem"
-        ]
-    }
-    
-    # Save to JSON file
-    with (base_dir / "detailed_analysis.json").open("w") as f:
-        json.dump(analysis_results, f, indent=2)
-    
-    print("📋 Detailed analysis saved to 'detailed_analysis.json'")
-    return analysis_results
+    plot_absolute_metrics(summary, sizes, systems, absolute_path)
+    plot_ratio_metrics(summary, sizes, systems, ratios_path)
+    plot_memory_footprint(summary, sizes, systems, footprint_path)
+
+    summary_text = build_summary_text(
+        results,
+        input_path=input_path,
+        output_paths=[absolute_path, ratios_path, footprint_path],
+    )
+    summary_path.write_text(summary_text, encoding="utf-8")
+
+    print(f"Wrote absolute metrics chart to {absolute_path}")
+    print(f"Wrote ratio metrics chart to {ratios_path}")
+    print(f"Wrote footprint chart to {footprint_path}")
+    print(f"Wrote text summary to {summary_path}")
 
 
 if __name__ == "__main__":
-    print("📊 NeuroMem-Agents Visualization Tool")
-    print("=" * 40)
-    
-    # Check if required libraries are available
-    if not install_requirements():
-        print("\n💡 To create visualizations, please install required libraries:")
-        print("   pip3 install matplotlib numpy")
-        print("\nThen rerun this script to generate charts.")
-        print("\nAlternatively, you can view the numerical results by running:")
-        print("   python3 benchmark_test.py")
-        print("   python3 advanced_benchmark.py")
-        exit(1)
-    
-    # Run detailed analysis
-    results = run_detailed_analysis()
-    
-    # Create visualization
-    try:
-        create_visualization()
-        print("\n🎉 Visualization created successfully!")
-    except Exception as e:
-        print(f"❌ Error creating visualization: {e}")
-        print("This might be due to missing GUI backend or other environment constraints.")
-        print("You can still view the numerical results by running the benchmark scripts.")
+    main()

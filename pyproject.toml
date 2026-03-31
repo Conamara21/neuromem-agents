@@ -49,6 +49,9 @@ test = [
 benchmark = [
     "scikit-learn>=1.8.0"
 ]
+viz = [
+    "matplotlib>=3.8.0"
+]
 
 [project.urls]
 Homepage = "https://github.com/Conamara21/neuromem-agents"

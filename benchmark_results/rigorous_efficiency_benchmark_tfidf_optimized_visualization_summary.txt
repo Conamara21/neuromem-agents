@@ -1,0 +1,24 @@
+Rigorous Benchmark Visualization Summary
+Source JSON: /home/conamara/Desktop/ai memory/neuromem-agents/benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json
+Embedding backend: tfidf
+Sizes: 128, 512, 1024
+
+Corpus Size 128
+- Traditional RAG: build 0.127s, exact p95 3.813ms, topic p95 3.707ms, neighbor recall 0.850
+- NeuroMem In-Memory: build 0.147s, exact p95 3.714ms, topic p95 3.655ms, neighbor recall 1.000
+- NeuroMem Persistent: build 0.204s, exact p95 3.823ms, topic p95 3.713ms, neighbor recall 1.000
+
+Corpus Size 512
+- Traditional RAG: build 0.503s, exact p95 14.322ms, topic p95 16.492ms, neighbor recall 0.345
+- NeuroMem In-Memory: build 0.585s, exact p95 3.852ms, topic p95 1.972ms, neighbor recall 0.854
+- NeuroMem Persistent: build 0.825s, exact p95 3.905ms, topic p95 2.779ms, neighbor recall 0.854
+
+Corpus Size 1024
+- Traditional RAG: build 0.989s, exact p95 26.152ms, topic p95 25.524ms, neighbor recall 0.059
+- NeuroMem In-Memory: build 1.186s, exact p95 5.811ms, topic p95 1.904ms, neighbor recall 0.132
+- NeuroMem Persistent: build 1.715s, exact p95 7.964ms, topic p95 2.069ms, neighbor recall 0.132
+
+Generated files:
+- /home/conamara/Desktop/ai memory/neuromem-agents/benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_absolute.png
+- /home/conamara/Desktop/ai memory/neuromem-agents/benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_ratios.png
+- /home/conamara/Desktop/ai memory/neuromem-agents/benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_footprint.png

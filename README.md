@@ -229,6 +229,54 @@ results = engine.run_comparison_test(test_data)
 print(results['summary'])
 ```
 
+### Rigorous Evaluation vs Traditional RAG
+
+The repository now includes a reproducible benchmark that compares:
+
+- `traditional_rag`
+- `neuromem_in_memory`
+- `neuromem_persistent`
+
+Methodology for the latest benchmark:
+
+- Shared `tfidf` embedding backend across all systems for a fair structural comparison
+- `3` isolated trials per condition
+- Corpus sizes: `128`, `512`, `1024`
+- `64` measured queries and `16` warmup queries per trial
+- Metrics include exact-match latency, topic-hit rate, and primed associative neighbor recall
+
+Latest result files:
+
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json`
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.md`
+
+Key interpretation:
+
+- All systems reached `exact top1 = 1.000` and `topic-hit@5 = 1.000`, so retrieval latency gains were not bought by collapsing accuracy.
+- `neuromem_in_memory` is materially stronger than traditional RAG for larger memory pools. At corpus size `1024`, exact retrieval `p95` is `5.811 ms` versus `26.152 ms`.
+- Associative retrieval remains a clear advantage. At corpus size `512`, primed neighbor recall is `0.854` for `neuromem_in_memory` versus `0.345` for traditional RAG.
+- `neuromem_persistent` keeps most of the retrieval advantage, but pays a higher storage footprint because persistence is part of the feature set.
+
+| Corpus Size | System | Build Time (s) | Exact p95 (ms) | Topic p95 (ms) | Neighbor Recall@5 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 128 | Traditional RAG | 0.127 | 3.813 | 3.707 | 0.850 |
+| 128 | NeuroMem In-Memory | 0.147 | 3.714 | 3.655 | 1.000 |
+| 128 | NeuroMem Persistent | 0.204 | 3.823 | 3.713 | 1.000 |
+| 512 | Traditional RAG | 0.503 | 14.322 | 16.492 | 0.345 |
+| 512 | NeuroMem In-Memory | 0.585 | 3.852 | 1.972 | 0.854 |
+| 512 | NeuroMem Persistent | 0.825 | 3.905 | 2.779 | 0.854 |
+| 1024 | Traditional RAG | 0.989 | 26.152 | 25.524 | 0.059 |
+| 1024 | NeuroMem In-Memory | 1.186 | 5.811 | 1.904 | 0.132 |
+| 1024 | NeuroMem Persistent | 1.715 | 7.964 | 2.069 | 0.132 |
+
+Benchmark visualizations generated from the real JSON output:
+
+![Absolute benchmark metrics](benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_absolute.png)
+
+![Relative performance vs traditional RAG](benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_ratios.png)
+
+![Memory and database footprint](benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_footprint.png)
+
 ### Running Experiments and Visualizations
 
 The project includes comprehensive benchmarking tools:
@@ -236,22 +284,30 @@ The project includes comprehensive benchmarking tools:
 - `benchmark_test.py`: Basic performance comparison
 - `advanced_benchmark.py`: Complex scenario evaluation
 - `extended_conversation_test.py`: 25+ interaction conversation simulation
-- `visualize_results.py`: Generate performance comparison charts
+- `neuromem/experiments/rigorous_benchmark.py`: Reproducible shared-embedding benchmark
+- `visualize_results.py`: Generate charts from real benchmark JSON outputs
 
-To run all tests and generate visualizations:
+To run the latest rigorous benchmark and generate visualizations:
 
 ```bash
 cd neuromem-agents
 source venv/bin/activate  # if using virtual environment
-pip3 install matplotlib numpy seaborn  # for visualizations
-python3 extended_conversation_test.py  # Extended conversation test
-python3 visualize_results.py          # Generate visualizations
+pip install ".[benchmark,viz]"
+python -m neuromem.experiments.rigorous_benchmark \
+  --sizes 128 512 1024 \
+  --trials 3 \
+  --query-count 64 \
+  --warmup-count 16 \
+  --embedding-backend tfidf \
+  --output benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json
+python visualize_results.py
 ```
 
 Generated visualization files:
-- `benchmark_visualization_fixed.png`: Performance comparison chart
-- `extended_conversation_results_fixed.png`: Extended test results
-- `simple_comparison_fixed.png`: Simple comparison chart
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_absolute.png`: Absolute latency, build-time, and recall trends
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_ratios.png`: NeuroMem vs traditional ratios
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_footprint.png`: Heap and database footprint
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_visualization_summary.txt`: Text summary for the generated charts
 
 ## 🏗️ Architecture
 
@@ -273,17 +329,12 @@ Generated visualization files:
 
 ## 📊 Performance Characteristics
 
-Our neuromorphic approach demonstrates:
-- Superior performance in complex, interconnected knowledge domains
-- Better contextual understanding for related information retrieval
-- Improved handling of extended conversation scenarios
-- Trade-offs in raw efficiency for enhanced cognitive capabilities
-- Continuity through persistent storage and memory consolidation
-- Enhanced adaptability through neural plasticity mechanisms
-- Efficient resource utilization through predictive coding
-- Biological realism through hierarchical architecture
-- Cross-regional collaboration through brain region coordination
-- Computational efficiency through sparse activation and optimization
+Our current measured results show:
+- Exact-match top-1 accuracy remains `1.000` across the latest rigorous benchmark.
+- Topic-hit@5 remains `1.000`, so the benchmark improvements are not masking ranking collapse.
+- `neuromem_in_memory` is substantially faster than traditional RAG at `512` and `1024` corpus sizes under a shared embedding backend.
+- Associative recall remains stronger than traditional RAG, which is important for long conversations and large project contexts.
+- Persistent NeuroMem keeps most of the retrieval advantage, while accepting a larger database footprint as a trade-off for continuity.
 
 ## 🤝 Contributing
 
@@ -531,6 +582,54 @@ results = engine.run_comparison_test(test_data)
 print(results['summary'])
 ```
 
+### 严谨基准测试结果
+
+仓库现在包含一套可复现的严谨 benchmark，对比以下三种系统：
+
+- `traditional_rag`
+- `neuromem_in_memory`
+- `neuromem_persistent`
+
+最新测试的方法学设置：
+
+- 所有系统统一使用共享 `tfidf` embedding backend，保证对比聚焦在记忆结构而不是 embedding 偏差
+- 每个条件运行 `3` 次隔离试验
+- 语料规模为 `128`、`512`、`1024`
+- 每次试验包含 `64` 个正式查询和 `16` 个 warmup 查询
+- 指标包括 exact-match 延迟、topic-hit rate 和 primed associative neighbor recall
+
+最新结果文件：
+
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json`
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.md`
+
+结论可以概括为：
+
+- 所有系统都达到 `exact top1 = 1.000` 和 `topic-hit@5 = 1.000`，说明速度提升不是靠牺牲正确性换来的。
+- 在更接近长对话和大项目的记忆规模下，`neuromem_in_memory` 明显优于传统 RAG。语料规模 `1024` 时，exact retrieval `p95` 为 `5.811 ms`，传统 RAG 为 `26.152 ms`。
+- 关联检索依然是主要优势。语料规模 `512` 时，primed neighbor recall 为 `0.854`，传统 RAG 仅为 `0.345`。
+- `neuromem_persistent` 保留了大部分检索优势，但由于持久化本身就是特性的一部分，因此会带来更大的存储开销。
+
+| 语料规模 | 系统 | 构建时间 (s) | Exact p95 (ms) | Topic p95 (ms) | Neighbor Recall@5 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 128 | Traditional RAG | 0.127 | 3.813 | 3.707 | 0.850 |
+| 128 | NeuroMem In-Memory | 0.147 | 3.714 | 3.655 | 1.000 |
+| 128 | NeuroMem Persistent | 0.204 | 3.823 | 3.713 | 1.000 |
+| 512 | Traditional RAG | 0.503 | 14.322 | 16.492 | 0.345 |
+| 512 | NeuroMem In-Memory | 0.585 | 3.852 | 1.972 | 0.854 |
+| 512 | NeuroMem Persistent | 0.825 | 3.905 | 2.779 | 0.854 |
+| 1024 | Traditional RAG | 0.989 | 26.152 | 25.524 | 0.059 |
+| 1024 | NeuroMem In-Memory | 1.186 | 5.811 | 1.904 | 0.132 |
+| 1024 | NeuroMem Persistent | 1.715 | 7.964 | 2.069 | 0.132 |
+
+以下图示均直接由真实 benchmark JSON 生成：
+
+![绝对指标图](benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_absolute.png)
+
+![相对 Traditional RAG 的比例图](benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_ratios.png)
+
+![内存和数据库占用图](benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_footprint.png)
+
 ### 运行实验和可视化
 
 项目包含全面的基准测试工具：
@@ -538,22 +637,30 @@ print(results['summary'])
 - `benchmark_test.py`: 基础性能对比
 - `advanced_benchmark.py`: 复杂场景评估
 - `extended_conversation_test.py`: 25+次交互对话模拟
-- `visualize_results.py`: 生成性能对比图表
+- `neuromem/experiments/rigorous_benchmark.py`: 可复现的共享 embedding benchmark
+- `visualize_results.py`: 从真实 benchmark JSON 生成图表
 
-运行所有测试并生成可视化：
+运行最新严谨 benchmark 并生成可视化：
 
 ```bash
 cd neuromem-agents
 source venv/bin/activate  # 如果使用虚拟环境
-pip3 install matplotlib numpy seaborn  # 用于可视化
-python3 extended_conversation_test.py  # 扩展对话测试
-python3 visualize_results.py          # 生成可视化
+pip install ".[benchmark,viz]"
+python -m neuromem.experiments.rigorous_benchmark \
+  --sizes 128 512 1024 \
+  --trials 3 \
+  --query-count 64 \
+  --warmup-count 16 \
+  --embedding-backend tfidf \
+  --output benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json
+python visualize_results.py
 ```
 
 生成的可视化文件：
-- `benchmark_visualization_fixed.png`: 性能对比图表
-- `extended_conversation_results_fixed.png`: 扩展测试结果
-- `simple_comparison_fixed.png`: 简单对比图表
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_absolute.png`: 绝对延迟、构建时间和 recall 趋势图
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_ratios.png`: NeuroMem 相对传统 RAG 的比例图
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_footprint.png`: Heap 和数据库占用图
+- `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_visualization_summary.txt`: 图表文字摘要
 
 ## 🏗️ 架构
 
@@ -575,17 +682,12 @@ python3 visualize_results.py          # 生成可视化
 
 ## 📊 性能特征
 
-我们的神经形态方法展示：
-- 在复杂、互联的知识领域表现卓越
-- 在相关息检索的情境理解方面更优
-- 在扩展对话场景中的处理能力改善
-- 在原始效率与增强的认知能力之间的权衡
-- 通过持久化存储和记忆巩固实现连续性
-- 通过神经可塑性机制增强适应性
-- 通过预测编码实现高效资源利用
-- 通过分层架构实现生物真实性
-- 通过脑区协调实现跨区域协作
-- 通过稀疏激活和优化实现计算效率
+当前实测结果表明：
+- 最新严谨 benchmark 中，exact-match top-1 accuracy 始终保持 `1.000`。
+- Topic-hit@5 始终保持 `1.000`，说明性能提升没有掩盖排序退化。
+- 在共享 embedding backend 条件下，`neuromem_in_memory` 在 `512` 和 `1024` 规模上明显快于传统 RAG。
+- 关联召回仍显著强于传统 RAG，这一点对长对话和大项目上下文尤其重要。
+- 持久化 NeuroMem 保留了大部分检索优势，但以更大的数据库体积作为连续性的代价。
 
 ## 🤝 贡献
 
