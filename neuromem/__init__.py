@@ -4,7 +4,7 @@ NeuroMem public package.
 
 from importlib import import_module
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 _EXPORTS = {
     "MemoryManager": (".core", "MemoryManager"),
@@ -20,6 +20,9 @@ _EXPORTS = {
     "MemoryNode": (".core", "MemoryNode"),
     "TraditionalRAGSystem": (".core", "TraditionalRAGSystem"),
     "ComparisonEngine": (".experiments", "ComparisonEngine"),
+    "MemoryAugmentedProxy": (".integrations", "MemoryAugmentedProxy"),
+    "NeuromemSettings": (".integrations", "NeuromemSettings"),
+    "load_settings": (".integrations", "load_settings"),
 }
 
 __all__ = [
@@ -36,6 +39,9 @@ __all__ = [
     "MemoryNode",
     "TraditionalRAGSystem",
     "ComparisonEngine",
+    "MemoryAugmentedProxy",
+    "NeuromemSettings",
+    "load_settings",
 ]
 
 

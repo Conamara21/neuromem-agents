@@ -220,6 +220,35 @@ class MemoryManager:
             seeds.update(value for value in values if value in self.memory_nodes)
         return seeds
 
+    def _required_node_ids(self, context: Optional[Dict[str, Any]]) -> Optional[Set[str]]:
+        if not context:
+            return None
+
+        raw_tags = context.get("required_tags", [])
+        if isinstance(raw_tags, str):
+            raw_tags = [raw_tags]
+
+        normalized_tags = [
+            str(tag).strip().lower()
+            for tag in raw_tags
+            if str(tag).strip()
+        ]
+        if not normalized_tags:
+            return None
+
+        required_ids: Optional[Set[str]] = None
+        for tag in normalized_tags:
+            tag_postings = set(self.inverted_index.get(f"tag:{tag}", set()))
+            if required_ids is None:
+                required_ids = tag_postings
+            else:
+                required_ids &= tag_postings
+
+            if not required_ids:
+                return set()
+
+        return required_ids or set()
+
     def _expand_association_candidates(
         self,
         seeds: Iterable[str],
@@ -295,9 +324,19 @@ class MemoryManager:
             return None
         return candidate_ids
 
+    def _coerce_memory_type(self, memory_type: Any) -> MemoryType:
+        if isinstance(memory_type, MemoryType):
+            return memory_type
+
+        raw_value = getattr(memory_type, "value", memory_type)
+        if isinstance(raw_value, str):
+            return MemoryType(raw_value.lower())
+        raise ValueError(f"Unsupported memory type: {memory_type!r}")
+
     def encode(self, content: str, memory_type: MemoryType, tags: List[str] = None) -> str:
         """Encode new information into memory nodes"""
         self._initialize_runtime_state()
+        memory_type = self._coerce_memory_type(memory_type)
 
         content_hash = hashlib.md5(content.encode()).hexdigest()[:12]
         node_id = f"{memory_type.value}_{content_hash}_{int(time.time())}"
@@ -377,13 +416,35 @@ class MemoryManager:
         query_embedding = self._generate_embedding(query)
         query_norm = float(np.linalg.norm(query_embedding))
         candidate_ids = self._candidate_node_ids(query, top_k=top_k, context=context)
+        required_node_ids = self._required_node_ids(context)
+
+        if required_node_ids == set():
+            return []
 
         if candidate_ids is None:
-            candidate_items = list(self.memory_nodes.items())
+            if required_node_ids is None:
+                candidate_items = list(self.memory_nodes.items())
+            else:
+                candidate_items = [
+                    (node_id, self.memory_nodes[node_id])
+                    for node_id in required_node_ids
+                    if node_id in self.memory_nodes
+                ]
         else:
+            scoped_candidate_ids = candidate_ids
+            if required_node_ids is not None:
+                scoped_candidate_ids = [
+                    node_id for node_id in candidate_ids if node_id in required_node_ids
+                ]
+                if len(scoped_candidate_ids) < min(top_k, len(required_node_ids)):
+                    scoped_candidate_ids.extend(
+                        node_id
+                        for node_id in required_node_ids
+                        if node_id not in scoped_candidate_ids
+                    )
             candidate_items = [
                 (node_id, self.memory_nodes[node_id])
-                for node_id in candidate_ids
+                for node_id in scoped_candidate_ids
                 if node_id in self.memory_nodes
             ]
 

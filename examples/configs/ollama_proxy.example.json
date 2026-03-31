@@ -1,0 +1,19 @@
+{
+  "chat_model": {
+    "provider": "ollama",
+    "model": "replace-with-your-local-model",
+    "base_url": "http://localhost:11434/v1"
+  },
+  "embedding_model": {
+    "provider": "local_lexical",
+    "model": "lexical-hash-512"
+  },
+  "memory": {
+    "db_path": "neuromem_proxy.db",
+    "retrieval_top_k": 5
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8080
+  }
+}

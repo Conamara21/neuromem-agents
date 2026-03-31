@@ -11,6 +11,15 @@ System architecture at a glance:
 
 ![NeuroMem architecture flowchart](docs/neuromem_architecture_flowchart_en.png)
 
+## Integration Compatibility
+
+- **Upstream chat providers**: OpenAI, Anthropic, Gemini, Ollama, LM Studio, and vLLM
+- **Client compatibility**: Python and JavaScript projects that already use an OpenAI-compatible `base_url`
+- **API surface**: `/v1/chat/completions`, `/v1/responses`, `/v1/memory/records`, `/v1/memory/search`, `/v1/memory/stats`
+- **Configuration model**: provider-agnostic JSON config with environment variable overrides
+- **Examples**: `examples/configs/*.example.json` and `examples/compatibility/*`
+- **Roadmap**: `docs/compatibility_roadmap.md`
+
 ## 🧠 Key Features
 
 - **Biological Inspiration**: Models human memory types (sensory, working, episodic, semantic)
@@ -86,7 +95,56 @@ Our system closely mimics human memory architecture:
 
 ```bash
 pip install neuromem-agents
+# or install the OpenAI-compatible proxy server
+pip install 'neuromem-agents[server]'
 ```
+
+### OpenAI-Compatible Proxy
+
+Start from one of the example configs:
+
+```bash
+cp examples/configs/openai_proxy.example.json ./neuromem.proxy.json
+export OPENAI_API_KEY=your_key_here
+neuromem-openai-server --config ./neuromem.proxy.json
+```
+
+Then point any OpenAI-compatible client to the local proxy:
+
+```bash
+curl http://127.0.0.1:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer neuromem-local" \
+  -d '{
+    "model": "your-upstream-model",
+    "messages": [
+      {"role": "user", "content": "What did we decide about the retrieval pipeline?"}
+    ],
+    "neuromem": {
+      "session_id": "demo-project",
+      "top_k": 5,
+      "store_messages": true
+    }
+  }'
+```
+
+You can also write or inspect memory directly:
+
+```bash
+curl http://127.0.0.1:8080/v1/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "retrieval pipeline",
+    "session_id": "demo-project",
+    "top_k": 5
+  }'
+```
+
+For SDK examples, see:
+
+- `examples/compatibility/openai_sdk_client.py`
+- `examples/compatibility/openai_sdk_responses_client.py`
+- `examples/compatibility/openai_client.js`
 
 ### Basic Usage
 
@@ -370,6 +428,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ![NeuroMem 架构流转图](docs/neuromem_architecture_flowchart.png)
 
+## 兼容性与接入方式
+
+- **上游聊天模型**：OpenAI、Anthropic、Gemini、Ollama、LM Studio、vLLM
+- **客户端兼容性**：已支持 OpenAI-compatible `base_url` 的 Python / JavaScript / IDE / agent 工作流
+- **API 入口**：`/v1/chat/completions`、`/v1/responses`、`/v1/memory/records`、`/v1/memory/search`、`/v1/memory/stats`
+- **配置方式**：统一 JSON 配置，加环境变量覆盖
+- **示例目录**：`examples/configs/*.example.json` 与 `examples/compatibility/*`
+- **路线图**：`docs/compatibility_roadmap.md`
+
 ## 🧠 主要特性
 
 - **生物学启发**：建模人类记忆类型（感觉记忆、工作记忆、情节记忆、语义记忆）
@@ -445,7 +512,56 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ```bash
 pip install neuromem-agents
+# 或安装 OpenAI-compatible 代理服务
+pip install 'neuromem-agents[server]'
 ```
+
+### OpenAI-Compatible 代理服务
+
+先从示例配置开始：
+
+```bash
+cp examples/configs/openai_proxy.example.json ./neuromem.proxy.json
+export OPENAI_API_KEY=your_key_here
+neuromem-openai-server --config ./neuromem.proxy.json
+```
+
+然后把任意 OpenAI-compatible 客户端指向本地代理：
+
+```bash
+curl http://127.0.0.1:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer neuromem-local" \
+  -d '{
+    "model": "your-upstream-model",
+    "messages": [
+      {"role": "user", "content": "我们之前是怎么定检索链路的？"}
+    ],
+    "neuromem": {
+      "session_id": "demo-project",
+      "top_k": 5,
+      "store_messages": true
+    }
+  }'
+```
+
+你也可以直接写入或检索记忆：
+
+```bash
+curl http://127.0.0.1:8080/v1/memory/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "检索链路",
+    "session_id": "demo-project",
+    "top_k": 5
+  }'
+```
+
+SDK 示例见：
+
+- `examples/compatibility/openai_sdk_client.py`
+- `examples/compatibility/openai_sdk_responses_client.py`
+- `examples/compatibility/openai_client.js`
 
 ### 基础使用
 

@@ -1,0 +1,18 @@
+{
+  "chat_model": {
+    "provider": "anthropic",
+    "model": "replace-with-your-claude-model"
+  },
+  "embedding_model": {
+    "provider": "local_lexical",
+    "model": "lexical-hash-512"
+  },
+  "memory": {
+    "db_path": "neuromem_proxy.db",
+    "retrieval_top_k": 5
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8080
+  }
+}

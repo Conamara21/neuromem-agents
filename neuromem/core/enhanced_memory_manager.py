@@ -195,9 +195,20 @@ class EnhancedMemoryManager:
         self.stdp_mechanism = STDPMechanism()
         self.meta_controller = MetaLearningController()
         self.attention_gate = AttentionGate()
+
+    def _coerce_memory_type(self, memory_type: Any) -> MemoryType:
+        if isinstance(memory_type, MemoryType):
+            return memory_type
+
+        raw_value = getattr(memory_type, "value", memory_type)
+        if isinstance(raw_value, str):
+            return MemoryType(raw_value.lower())
+        raise ValueError(f"Unsupported memory type: {memory_type!r}")
         
     def encode(self, content: str, memory_type: MemoryType, tags: List[str] = None) -> str:
         """Encode new information into memory nodes"""
+        memory_type = self._coerce_memory_type(memory_type)
+
         # Generate unique ID based on content
         content_hash = hashlib.md5(content.encode()).hexdigest()[:12]
         node_id = f"{memory_type.value}_{content_hash}_{int(time.time())}"

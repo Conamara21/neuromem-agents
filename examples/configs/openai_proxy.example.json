@@ -1,0 +1,20 @@
+{
+  "chat_model": {
+    "provider": "openai",
+    "model": "replace-with-your-openai-model"
+  },
+  "embedding_model": {
+    "provider": "local_lexical",
+    "model": "lexical-hash-512"
+  },
+  "memory": {
+    "db_path": "neuromem_proxy.db",
+    "retrieval_top_k": 5,
+    "auto_store": true,
+    "auto_associate": true
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8080
+  }
+}
