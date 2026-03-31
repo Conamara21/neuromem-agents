@@ -24,6 +24,8 @@ _EXPORTS = {
     "NeuromemSettings": (".integrations", "NeuromemSettings"),
     "load_settings": (".integrations", "load_settings"),
     "build_mcp_server": (".mcp", "build_mcp_server"),
+    "NeuroMemRetriever": (".frameworks", "NeuroMemRetriever"),
+    "create_langchain_chat_openai": (".frameworks", "create_langchain_chat_openai"),
 }
 
 __all__ = [
@@ -44,6 +46,8 @@ __all__ = [
     "NeuromemSettings",
     "load_settings",
     "build_mcp_server",
+    "NeuroMemRetriever",
+    "create_langchain_chat_openai",
 ]
 
 

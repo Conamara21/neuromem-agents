@@ -21,6 +21,7 @@ _EXPORTS = {
     "load_settings": (".config", "load_settings"),
     "MemoryAugmentedProxy": (".engine", "MemoryAugmentedProxy"),
     "MemoryProxyOptions": (".engine", "MemoryProxyOptions"),
+    "ProxyTelemetry": (".telemetry", "ProxyTelemetry"),
 }
 
 __all__ = list(_EXPORTS.keys())

@@ -19,6 +19,7 @@ from .adapters import (
     normalize_chat_messages,
 )
 from .config import NeuromemSettings
+from .telemetry import ProxyTelemetry
 
 
 def _coerce_memory_type(value: Any) -> MemoryType:
@@ -72,6 +73,7 @@ class MemoryAugmentedProxy:
 
     def __init__(self, settings: NeuromemSettings):
         self.settings = settings
+        self.telemetry = ProxyTelemetry()
         embedder = create_text_embedder(settings.embedding_model)
         self.memory = MemoryManager(
             capacity=settings.memory.capacity,
@@ -132,6 +134,7 @@ class MemoryAugmentedProxy:
         combined_tags = self._build_tags(session_id, tags)
         existing_id = self._find_existing_memory(content, combined_tags)
         if existing_id and existing_id in self.memory.memory_nodes:
+            self.telemetry.record_memory_write(duplicate=True)
             return {
                 "id": existing_id,
                 "duplicate": True,
@@ -143,6 +146,7 @@ class MemoryAugmentedProxy:
             _coerce_memory_type(memory_type or self.settings.memory.default_memory_type),
             tags=combined_tags,
         )
+        self.telemetry.record_memory_write(duplicate=False)
         return {
             "id": node_id,
             "duplicate": False,
@@ -156,6 +160,7 @@ class MemoryAugmentedProxy:
         top_k: Optional[int] = None,
         tags: Optional[Sequence[str]] = None,
     ) -> List[Dict[str, Any]]:
+        started_at = time.perf_counter()
         resolved_top_k = top_k or self.settings.memory.retrieval_top_k
         built_tags = self._build_tags(session_id, tags)
         context = {
@@ -163,7 +168,12 @@ class MemoryAugmentedProxy:
             "required_tags": built_tags,
         }
         results = self.memory.retrieve(query, top_k=resolved_top_k, context=context)
-        return [self._serialize_memory_node(node) for node in results]
+        payload = [self._serialize_memory_node(node) for node in results]
+        self.telemetry.record_memory_search(
+            result_count=len(payload),
+            latency_ms=(time.perf_counter() - started_at) * 1000.0,
+        )
+        return payload
 
     def list_memories(
         self,
@@ -214,6 +224,7 @@ class MemoryAugmentedProxy:
             raise ValueError("Memory `{0}` was not found.".format(target_id))
 
         self.memory.associate(source_id, target_id, strength=float(strength))
+        self.telemetry.record_association()
         return {
             "source_id": source_id,
             "target_id": target_id,
@@ -226,6 +237,12 @@ class MemoryAugmentedProxy:
         stats = self.memory.get_statistics()
         stats["db_path"] = self.settings.memory.db_path
         return stats
+
+    def metrics_snapshot(self) -> Dict[str, Any]:
+        return self.telemetry.snapshot()
+
+    def metrics_prometheus(self) -> str:
+        return self.telemetry.prometheus_text()
 
     def _latest_user_query(self, messages: Sequence[ChatMessage]) -> str:
         for message in reversed(messages):
@@ -298,14 +315,17 @@ class MemoryAugmentedProxy:
             and assistant_id in self.memory.memory_nodes
         ):
             self.memory.associate(user_id, assistant_id, strength=0.9)
+            self.telemetry.record_association()
 
         if self.settings.memory.auto_associate and user_id:
             for memory in retrieved_memories[:3]:
                 memory_id = memory.get("id")
                 if memory_id and memory_id in self.memory.memory_nodes:
                     self.memory.associate(user_id, memory_id, strength=0.55)
+                    self.telemetry.record_association()
                     if assistant_id and assistant_id in self.memory.memory_nodes:
                         self.memory.associate(assistant_id, memory_id, strength=0.45)
+                        self.telemetry.record_association()
 
         return {
             "user_id": user_id,
@@ -323,6 +343,7 @@ class MemoryAugmentedProxy:
     ) -> Dict[str, Any]:
         if self.chat_adapter is None:
             raise ValueError("No upstream chat provider configured.")
+        started_at = time.perf_counter()
 
         normalized_messages = normalize_chat_messages(messages)
         options = proxy_options or MemoryProxyOptions()
@@ -370,6 +391,12 @@ class MemoryAugmentedProxy:
                 extra_tags=extra_tags,
                 retrieved_memories=retrieved_memories,
             )
+        stored_message_count = sum(1 for value in stored_ids.values() if value)
+        self.telemetry.record_chat_request(
+            latency_ms=(time.perf_counter() - started_at) * 1000.0,
+            retrieved_count=len(retrieved_memories),
+            stored_message_count=stored_message_count,
+        )
 
         return {
             "response": response,

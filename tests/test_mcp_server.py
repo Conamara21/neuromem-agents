@@ -98,6 +98,7 @@ class MCPServerTests(unittest.IsolatedAsyncioTestCase):
                         "list_memories",
                         "associate_memories",
                         "get_memory_stats",
+                        "get_observability_metrics",
                         "consolidate_memory",
                     }.issubset(tool_names)
                 )
@@ -130,6 +131,17 @@ class MCPServerTests(unittest.IsolatedAsyncioTestCase):
                 resource = await session.read_resource("memory://records/{0}".format(memory_id))
                 self.assertEqual(len(resource.contents), 1)
                 self.assertIn("stdio alpha memory", resource.contents[0].text)
+
+                observability = await session.call_tool("get_observability_metrics")
+                self.assertFalse(observability.isError)
+                self.assertGreaterEqual(
+                    observability.structuredContent["result"]["counters"]["memory_search_total"],
+                    1,
+                )
+
+                observability_resource = await session.read_resource("memory://stats/observability")
+                self.assertEqual(len(observability_resource.contents), 1)
+                self.assertIn('"memory_search_total"', observability_resource.contents[0].text)
 
                 prompt = await session.get_prompt(
                     "memory_recall_query",

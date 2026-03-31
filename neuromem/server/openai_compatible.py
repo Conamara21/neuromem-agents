@@ -10,11 +10,13 @@ from typing import Any, Dict, Optional
 try:
     from fastapi import FastAPI, HTTPException, Request
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import PlainTextResponse
 except ImportError as exc:  # pragma: no cover - optional runtime dependency
     FastAPI = None
     HTTPException = None
     Request = None
     CORSMiddleware = None
+    PlainTextResponse = None
     _FASTAPI_IMPORT_ERROR = exc
 else:
     _FASTAPI_IMPORT_ERROR = None
@@ -127,6 +129,14 @@ def create_app(config_path: Optional[str] = None, settings=None):
     @app.get("/v1/memory/stats")
     async def memory_stats() -> Dict[str, Any]:
         return service.memory_statistics()
+
+    @app.get("/v1/metrics")
+    async def metrics_json() -> Dict[str, Any]:
+        return service.metrics_snapshot()
+
+    @app.get("/metrics", response_class=PlainTextResponse)
+    async def metrics_prometheus() -> PlainTextResponse:
+        return PlainTextResponse(service.metrics_prometheus())
 
     return app
 

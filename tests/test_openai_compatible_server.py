@@ -245,6 +245,51 @@ class OpenAICompatibleServerTests(unittest.TestCase):
         self.assertGreaterEqual(body["neuromem"]["retrieved_count"], 1)
         self.assertEqual(body["output_text"].startswith("memory_context=yes"), True)
 
+    def test_metrics_endpoints_report_runtime_activity(self):
+        create_response = self.client.post(
+            "/v1/memory/records",
+            json={
+                "content": "metrics memory",
+                "session_id": "metrics-session",
+                "memory_type": "semantic",
+            },
+        )
+        self.assertEqual(create_response.status_code, 200)
+
+        search_response = self.client.post(
+            "/v1/memory/search",
+            json={
+                "query": "metrics",
+                "session_id": "metrics-session",
+                "top_k": 5,
+            },
+        )
+        self.assertEqual(search_response.status_code, 200)
+
+        chat_response = self.client.post(
+            "/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Use metrics memory"}],
+                "neuromem": {"session_id": "metrics-session", "top_k": 5},
+            },
+        )
+        self.assertEqual(chat_response.status_code, 200)
+
+        metrics_json = self.client.get("/v1/metrics")
+        self.assertEqual(metrics_json.status_code, 200)
+        metrics_payload = metrics_json.json()
+        self.assertGreaterEqual(metrics_payload["counters"]["memory_writes_total"], 1)
+        self.assertGreaterEqual(metrics_payload["counters"]["memory_search_total"], 1)
+        self.assertGreaterEqual(metrics_payload["counters"]["chat_requests_total"], 1)
+        self.assertGreaterEqual(
+            metrics_payload["counters"]["chat_requests_with_memory_hits_total"], 1
+        )
+
+        metrics_text = self.client.get("/metrics")
+        self.assertEqual(metrics_text.status_code, 200)
+        self.assertIn("neuromem_chat_requests_total", metrics_text.text)
+
 
 if __name__ == "__main__":
     unittest.main()

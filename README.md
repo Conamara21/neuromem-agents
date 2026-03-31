@@ -16,10 +16,15 @@ System architecture at a glance:
 - **Upstream chat providers**: OpenAI, Anthropic, Gemini, Ollama, LM Studio, and vLLM
 - **Client compatibility**: Python and JavaScript projects that already use an OpenAI-compatible `base_url`
 - **MCP compatibility**: local `stdio` and remote `streamable-http` transports for IDE agents and MCP runtimes
+- **Framework compatibility**: first-party LangChain retriever and OpenAI-compatible chat helper
+- **Deployment compatibility**: Docker image and `docker compose` / `docker-compose` template for one-command startup
 - **API surface**: `/v1/chat/completions`, `/v1/responses`, `/v1/memory/records`, `/v1/memory/search`, `/v1/memory/stats`
+- **Observability**: JSON and Prometheus metrics endpoints for retrieval and request behavior
 - **Configuration model**: provider-agnostic JSON config with environment variable overrides
 - **Examples**: `examples/configs/*.example.json` and `examples/compatibility/*`
 - **MCP docs**: `docs/mcp_integration.md`
+- **LangChain docs**: `docs/langchain_integration.md`
+- **Docker docs**: `docs/docker_deployment.md`
 - **Roadmap**: `docs/compatibility_roadmap.md`
 
 ## 🧠 Key Features
@@ -101,6 +106,8 @@ pip install neuromem-agents
 pip install 'neuromem-agents[server]'
 # or install the MCP server
 pip install 'neuromem-agents[mcp]'
+# or install the LangChain adapter
+pip install 'neuromem-agents[langchain]'
 ```
 
 ### OpenAI-Compatible Proxy
@@ -181,6 +188,78 @@ What it exposes:
 - Prompts: `memory_recall_query`, `project_handoff_brief`
 
 See `docs/mcp_integration.md` for VS Code and JetBrains setup examples.
+
+### Observability
+
+The OpenAI-compatible proxy now exposes runtime metrics:
+
+- `GET /v1/metrics`: JSON metrics snapshot
+- `GET /metrics`: Prometheus-compatible text format
+
+Tracked signals include:
+
+- total memory writes
+- duplicate writes
+- total memory searches
+- memory-search hit rate
+- total chat requests
+- chat requests with memory hits
+- chat and search latency averages and p95 values
+
+### Docker Deployment
+
+Build the image:
+
+```bash
+docker build -t neuromem-agents:latest .
+```
+
+Run the full stack:
+
+```bash
+docker compose up --build
+# or: docker-compose up --build
+```
+
+This starts:
+
+- the OpenAI-compatible proxy on `http://127.0.0.1:8080`
+- the MCP server on `http://127.0.0.1:8765/mcp`
+
+Both services share the same SQLite memory store through a Docker volume. See `docs/docker_deployment.md`.
+
+### LangChain Integration
+
+Use NeuroMem as a LangChain retriever:
+
+```python
+from neuromem.frameworks import NeuroMemRetriever
+
+retriever = NeuroMemRetriever(
+    settings_path="examples/configs/openai_proxy.example.json",
+    session_id="demo-project",
+    top_k=5,
+)
+
+documents = retriever.invoke("architecture decision")
+```
+
+Or point LangChain `ChatOpenAI` at the NeuroMem proxy:
+
+```python
+from neuromem.frameworks import create_langchain_chat_openai
+
+llm = create_langchain_chat_openai(
+    model="your-upstream-model",
+    base_url="http://127.0.0.1:8080/v1",
+    api_key="neuromem-local",
+)
+```
+
+See `docs/langchain_integration.md` and:
+
+- `examples/compatibility/langchain_retriever.py`
+- `examples/compatibility/langchain_chat_openai.py`
 
 ### Basic Usage
 
@@ -469,10 +548,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **上游聊天模型**：OpenAI、Anthropic、Gemini、Ollama、LM Studio、vLLM
 - **客户端兼容性**：已支持 OpenAI-compatible `base_url` 的 Python / JavaScript / IDE / agent 工作流
 - **MCP 兼容性**：支持本地 `stdio` 和远程 `streamable-http`，可接 IDE agent 与 MCP runtime
+- **框架兼容性**：内置 LangChain retriever 和 OpenAI-compatible chat helper
+- **部署兼容性**：提供 Docker 镜像与 `docker compose` / `docker-compose` 模板
 - **API 入口**：`/v1/chat/completions`、`/v1/responses`、`/v1/memory/records`、`/v1/memory/search`、`/v1/memory/stats`
+- **可观测性**：提供 JSON 与 Prometheus 两种 metrics 输出
 - **配置方式**：统一 JSON 配置，加环境变量覆盖
 - **示例目录**：`examples/configs/*.example.json` 与 `examples/compatibility/*`
 - **MCP 文档**：`docs/mcp_integration.md`
+- **LangChain 文档**：`docs/langchain_integration.md`
+- **Docker 文档**：`docs/docker_deployment.md`
 - **路线图**：`docs/compatibility_roadmap.md`
 
 ## 🧠 主要特性
@@ -554,6 +638,8 @@ pip install neuromem-agents
 pip install 'neuromem-agents[server]'
 # 或安装 MCP 服务
 pip install 'neuromem-agents[mcp]'
+# 或安装 LangChain 适配层
+pip install 'neuromem-agents[langchain]'
 ```
 
 ### OpenAI-Compatible 代理服务
@@ -634,6 +720,78 @@ neuromem-mcp-server \
 - Prompts：`memory_recall_query`、`project_handoff_brief`
 
 VS Code 和 JetBrains 的接入示例见 `docs/mcp_integration.md`。
+
+### 可观测性
+
+OpenAI-compatible 代理现在暴露运行时指标：
+
+- `GET /v1/metrics`：JSON 格式指标快照
+- `GET /metrics`：Prometheus 文本格式
+
+当前跟踪的信号包括：
+
+- 记忆写入总数
+- 重复写入数
+- 记忆检索总数
+- 检索命中率
+- 对话请求总数
+- 带记忆命中的对话请求数
+- 对话与检索的平均延迟和 p95 延迟
+
+### Docker 部署
+
+构建镜像：
+
+```bash
+docker build -t neuromem-agents:latest .
+```
+
+启动整套服务：
+
+```bash
+docker compose up --build
+# 或：docker-compose up --build
+```
+
+这会启动：
+
+- `http://127.0.0.1:8080` 上的 OpenAI-compatible 代理
+- `http://127.0.0.1:8765/mcp` 上的 MCP 服务
+
+两者会通过 Docker volume 共享同一个 SQLite 记忆库。详见 `docs/docker_deployment.md`。
+
+### LangChain 集成
+
+把 NeuroMem 当作 LangChain retriever 使用：
+
+```python
+from neuromem.frameworks import NeuroMemRetriever
+
+retriever = NeuroMemRetriever(
+    settings_path="examples/configs/openai_proxy.example.json",
+    session_id="demo-project",
+    top_k=5,
+)
+
+documents = retriever.invoke("architecture decision")
+```
+
+或把 LangChain `ChatOpenAI` 指向 NeuroMem proxy：
+
+```python
+from neuromem.frameworks import create_langchain_chat_openai
+
+llm = create_langchain_chat_openai(
+    model="your-upstream-model",
+    base_url="http://127.0.0.1:8080/v1",
+    api_key="neuromem-local",
+)
+```
+
+详见 `docs/langchain_integration.md` 与：
+
+- `examples/compatibility/langchain_retriever.py`
+- `examples/compatibility/langchain_chat_openai.py`
 
 ### 基础使用
 

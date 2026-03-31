@@ -115,6 +115,9 @@ class MCPMemoryService:
     def memory_stats(self) -> Dict[str, Any]:
         return self.proxy.memory_statistics()
 
+    def observability_metrics(self) -> Dict[str, Any]:
+        return self.proxy.metrics_snapshot()
+
     def build_recall_prompt(self, session_id: str, objective: str, limit: int = 5) -> List[Dict[str, str]]:
         summary = self.session_summary(session_id=session_id, limit=limit)
         bullet_lines = []
@@ -208,6 +211,10 @@ def build_mcp_server(settings: Optional[NeuromemSettings] = None, config_path: O
     def get_memory_stats() -> Dict[str, Any]:
         return service.memory_stats()
 
+    @server.tool(description="Get runtime observability metrics for NeuroMem.", structured_output=True)
+    def get_observability_metrics() -> Dict[str, Any]:
+        return service.observability_metrics()
+
     @server.tool(description="Run a consolidation pass on working memory.", structured_output=True)
     def consolidate_memory() -> Dict[str, Any]:
         return service.consolidate_memory()
@@ -220,6 +227,15 @@ def build_mcp_server(settings: Optional[NeuromemSettings] = None, config_path: O
     )
     def memory_stats_resource() -> str:
         return _serialize_json(service.memory_stats())
+
+    @server.resource(
+        "memory://stats/observability",
+        name="observability_metrics",
+        description="Runtime observability metrics for NeuroMem.",
+        mime_type="application/json",
+    )
+    def observability_metrics_resource() -> str:
+        return _serialize_json(service.observability_metrics())
 
     @server.resource(
         "memory://sessions/{session_id}/summary",

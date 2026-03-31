@@ -62,10 +62,14 @@ This roadmap turns NeuroMem from a research-oriented memory module into a practi
 - MCP prompts for session recall and project handoff workflows.
 - Ready-to-use NeuroMem MCP configs for local and remote deployment.
 
-## Phase 3: Broader Ecosystem Support
+## Phase 3: Shipping Now
 
-- LangChain wrapper with memory-aware retriever and chat model proxy helpers.
-- LlamaIndex adapter for using NeuroMem as long-term conversational memory.
+- LangChain adapter with a memory-aware retriever and OpenAI-compatible chat helper.
 - Docker image and compose template for one-command local startup.
-- Observability hooks for tracing retrieval latency, memory hit rate, and augmentation quality.
+- Built-in observability for retrieval latency, memory hit rate, request counts, and write behavior.
+- MCP observability tool and resource so IDE agents can inspect runtime state directly.
+
+## Phase 4: Next Expansion
+
+- LlamaIndex adapter for using NeuroMem as long-term conversational memory.
 - Prebuilt IDE config packs for VS Code, JetBrains AI Assistant, and other MCP clients.

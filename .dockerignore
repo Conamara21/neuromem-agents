@@ -1,0 +1,13 @@
+.git
+.gitignore
+.pytest_cache
+.coverage
+__pycache__
+*/__pycache__
+*.py[cod]
+venv
+.venv
+neuromem_agents.egg-info
+benchmark_results
+*.db
+tmp_*
