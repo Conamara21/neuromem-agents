@@ -5,9 +5,13 @@
 
 A developer-focused memory layer for AI agents that adds session-scoped recall, associative retrieval, and long-context continuity to existing tools with minimal client changes.
 
-System architecture at a glance:
+Brain-inspired subsystem map:
 
-![NeuroMem architecture mindmap](docs/neuromem_architecture_mindmap_en.png)
+![NeuroMem brain-inspired structure map](docs/neuromem_brain_regions_mindmap_en.svg)
+
+This diagram maps the organ-level analogy layer to the current implementation modules. [Mermaid source](docs/neuromem_brain_regions_mindmap_en.md) and [generator](scripts/render_brain_region_mindmap.py).
+
+System architecture at a glance:
 
 ![NeuroMem architecture flowchart](docs/neuromem_architecture_flowchart_en.png)
 
@@ -546,9 +550,13 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 一个面向开发者接入的 AI 记忆层，用尽量小的客户端改动，为现有工具补上 session-scoped recall、关联检索与长上下文连续性。
 
-系统结构总览：
+脑启发结构图：
 
-![NeuroMem 架构思维导图](docs/neuromem_architecture_mindmap.png)
+![NeuroMem 脑启发结构图](docs/neuromem_brain_regions_mindmap.svg)
+
+这张图把器官级类比和当前实现模块对应起来了。[Mermaid 源码](docs/neuromem_brain_regions_mindmap.md) 与 [生成脚本](scripts/render_brain_region_mindmap.py)。
+
+系统结构总览：
 
 ![NeuroMem 架构流转图](docs/neuromem_architecture_flowchart.png)
 
