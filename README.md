@@ -490,6 +490,7 @@ The project includes comprehensive benchmarking tools:
 - `advanced_benchmark.py`: Complex scenario evaluation
 - `extended_conversation_test.py`: 25+ interaction conversation simulation
 - `neuromem/experiments/rigorous_benchmark.py`: Reproducible shared-embedding benchmark
+- `neuromem/experiments/comprehensive_benchmark.py`: Multi-workload benchmark with paired statistics, topic ranking metrics, and long-conversation primed handoff recall
 - `visualize_results.py`: Generate charts from real benchmark JSON outputs
 
 To run the latest rigorous benchmark and generate visualizations:
@@ -506,6 +507,18 @@ python -m neuromem.experiments.rigorous_benchmark \
   --embedding-backend tfidf \
   --output benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json
 python visualize_results.py
+```
+
+To run the broader multi-workload comparison suite:
+
+```bash
+python -m neuromem.experiments.comprehensive_benchmark \
+  --sizes 128 512 1024 \
+  --trials 3 \
+  --query-count 32 \
+  --warmup-count 8 \
+  --embedding-backend tfidf \
+  --output benchmark_results/comprehensive_benchmark.json
 ```
 
 Generated visualization files:
@@ -1048,6 +1061,7 @@ print(results['summary'])
 - `advanced_benchmark.py`: 复杂场景评估
 - `extended_conversation_test.py`: 25+次交互对话模拟
 - `neuromem/experiments/rigorous_benchmark.py`: 可复现的共享 embedding benchmark
+- `neuromem/experiments/comprehensive_benchmark.py`: 多 workload 对比基准，包含配对统计、topic 排序指标和长对话 primed handoff recall
 - `visualize_results.py`: 从真实 benchmark JSON 生成图表
 
 运行最新严谨 benchmark 并生成可视化：
@@ -1064,6 +1078,18 @@ python -m neuromem.experiments.rigorous_benchmark \
   --embedding-backend tfidf \
   --output benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized.json
 python visualize_results.py
+```
+
+运行更全面的多 workload 对比基准：
+
+```bash
+python -m neuromem.experiments.comprehensive_benchmark \
+  --sizes 128 512 1024 \
+  --trials 3 \
+  --query-count 32 \
+  --warmup-count 8 \
+  --embedding-backend tfidf \
+  --output benchmark_results/comprehensive_benchmark.json
 ```
 
 生成的可视化文件：
