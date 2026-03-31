@@ -12,6 +12,7 @@ from typing import Dict, List, Tuple, Any
 import hashlib
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 
 class MemoryType(Enum):
@@ -288,6 +289,7 @@ class TraditionalConversationMemory:
 
 def run_extended_conversation_test():
     """Run extended conversation test with 20+ interactions"""
+    base_dir = Path(__file__).resolve().parent
     print("🔬 EXTENDED CONVERSATION TEST (20+ INTERACTIONS)")
     print("=" * 60)
     print("Testing memory systems with extended dialogue scenarios")
@@ -506,7 +508,7 @@ def run_extended_conversation_test():
             ax4.text(i, v + 2, f'{v:.1f}%', ha='center', va='bottom')
         
         plt.tight_layout()
-        plt.savefig('/root/.openclaw/workspace/neuromem-agents/extended_conversation_results.png', dpi=300, bbox_inches='tight')
+        plt.savefig(base_dir / "extended_conversation_results.png", dpi=300, bbox_inches='tight')
         plt.show()
         
         print(f"\n📊 Visualization saved as 'extended_conversation_results.png'")

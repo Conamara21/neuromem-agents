@@ -2,8 +2,7 @@
 Demo script showing brain region coordination mechanisms
 """
 
-from core.hierarchical_memory import HierarchicalMemoryManager, BrainRegion, MemoryLayer
-from core.neuromorphic_memory import MemoryType
+from neuromem.core import HierarchicalMemoryManager, BrainRegion, MemoryLayer, MemoryType
 import time
 
 

@@ -5,12 +5,13 @@ Visualization script for NeuroMem vs Traditional RAG comparison results
 import matplotlib.pyplot as plt
 import numpy as np
 import json
-import os
 from datetime import datetime
+from pathlib import Path
 
 
 def create_visualization():
     """Create visualizations for benchmark results"""
+    base_dir = Path(__file__).resolve().parent
     
     # Sample data based on our tests
     categories = ['Token Efficiency', 'Memory Usage', 'Retrieval Speed']
@@ -82,7 +83,7 @@ def create_visualization():
                 f'{val:.2f}', ha='center', va='bottom')
     
     plt.tight_layout()
-    plt.savefig('/root/.openclaw/workspace/neuromem-agents/benchmark_visualization.png', dpi=300, bbox_inches='tight')
+    plt.savefig(base_dir / "benchmark_visualization.png", dpi=300, bbox_inches='tight')
     plt.show()
     
     print("📊 Visualization saved as 'benchmark_visualization.png'")
@@ -113,6 +114,7 @@ def install_requirements():
 def run_detailed_analysis():
     """Run detailed analysis and save results"""
     print("🔬 Running detailed analysis...")
+    base_dir = Path(__file__).resolve().parent
     
     # This would contain the actual analysis logic
     analysis_results = {
@@ -142,7 +144,7 @@ def run_detailed_analysis():
     }
     
     # Save to JSON file
-    with open('/root/.openclaw/workspace/neuromem-agents/detailed_analysis.json', 'w') as f:
+    with (base_dir / "detailed_analysis.json").open("w") as f:
         json.dump(analysis_results, f, indent=2)
     
     print("📋 Detailed analysis saved to 'detailed_analysis.json'")

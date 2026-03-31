@@ -2,7 +2,7 @@
 Demo script showing efficiency optimizations: sparse activation, progressive refinement, and quantum-inspired algorithms
 """
 
-from core.efficiency_optimizer import EfficiencyOptimizedMemoryManager
+from neuromem.core import EfficiencyOptimizedMemoryManager
 import time
 
 

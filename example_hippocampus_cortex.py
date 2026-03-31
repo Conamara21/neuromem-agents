@@ -2,7 +2,7 @@
 Example specifically demonstrating hippocampus-cortex analogy in NeuroMem-Agents
 """
 
-from core.memory_manager import MemoryManager, MemoryType
+from neuromem.core import MemoryManager, MemoryType
 import time
 
 

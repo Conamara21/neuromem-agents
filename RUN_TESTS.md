@@ -7,7 +7,7 @@ This guide explains how to run the various tests and benchmarks included in the 
 Make sure you have the required libraries installed:
 
 ```bash
-cd /root/.openclaw/workspace/neuromem-agents/
+cd /path/to/neuromem-agents
 source venv/bin/activate  # Activate the virtual environment
 pip3 install matplotlib numpy seaborn
 ```
@@ -63,7 +63,7 @@ After running tests, you'll find results in:
 Always activate the virtual environment before running tests:
 
 ```bash
-cd /root/.openclaw/workspace/neuromem-agents/
+cd /path/to/neuromem-agents
 source venv/bin/activate
 ```
 

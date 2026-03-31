@@ -3,9 +3,9 @@
 ## 📋 Files to be pushed
 
 ### Core System Files
-- `core/neuromorphic_memory.py` - Main NeuroMem implementation
-- `core/traditional_rag.py` - Traditional RAG baseline
-- `experiments/comparison_engine.py` - Comparison framework
+- `neuromem/core/neuromorphic_memory.py` - Main NeuroMem implementation
+- `neuromem/core/traditional_rag.py` - Traditional RAG baseline
+- `neuromem/experiments/comparison_engine.py` - Comparison framework
 
 ### Test Scripts
 - `benchmark_test.py` - Basic performance tests
@@ -47,7 +47,7 @@
 ## 🚀 Push Commands
 
 ```bash
-cd /root/.openclaw/workspace/neuromem-agents/
+cd /path/to/neuromem-agents
 git add .
 git commit -m "Add extended tests, fixed visualizations, and comprehensive results"
 git push origin main

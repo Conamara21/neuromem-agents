@@ -2,7 +2,7 @@
 Demo script showing the neural plasticity features of Enhanced NeuroMem-Agents
 """
 
-from core.enhanced_memory_manager import EnhancedMemoryManager, MemoryType
+from neuromem.core import EnhancedMemoryManager, MemoryType
 import time
 
 

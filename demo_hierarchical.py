@@ -3,7 +3,7 @@ Demo script showing the hierarchical memory architecture with cortical columns,
 multi-region coordination, and predictive coding
 """
 
-from core.hierarchical_memory import HierarchicalMemoryManager, BrainRegion, MemoryLayer
+from neuromem.core import HierarchicalMemoryManager, BrainRegion, MemoryLayer
 import time
 
 

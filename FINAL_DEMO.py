@@ -2,11 +2,15 @@
 Final demonstration of all NeuroMem-Agents features
 """
 
-from core.memory_manager import MemoryManager
-from core.enhanced_memory_manager import EnhancedMemoryManager
-from core.hierarchical_memory import HierarchicalMemoryManager, BrainRegion, MemoryLayer
-from core.efficiency_optimizer import EfficiencyOptimizedMemoryManager
-from core.neuromorphic_memory import MemoryType
+from neuromem.core import (
+    BrainRegion,
+    EfficiencyOptimizedMemoryManager,
+    EnhancedMemoryManager,
+    HierarchicalMemoryManager,
+    MemoryLayer,
+    MemoryManager,
+    MemoryType,
+)
 import time
 
 

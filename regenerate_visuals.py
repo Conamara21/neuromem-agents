@@ -8,10 +8,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 from datetime import datetime
+from pathlib import Path
 
 
 def regenerate_benchmark_visualization():
     """Regenerate the benchmark visualization with proper format"""
+    base_dir = Path(__file__).resolve().parent
     
     # Sample data based on our tests
     categories = ['Token Efficiency', 'Memory Usage', 'Retrieval Speed']
@@ -85,7 +87,7 @@ def regenerate_benchmark_visualization():
     plt.tight_layout()
     
     # Save with proper PNG format
-    plt.savefig('/root/.openclaw/workspace/neuromem-agents/benchmark_visualization_fixed.png', 
+    plt.savefig(base_dir / "benchmark_visualization_fixed.png",
                 format='png', dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()  # Close figure to free memory
     
@@ -94,6 +96,7 @@ def regenerate_benchmark_visualization():
 
 def regenerate_extended_conversation_visualization():
     """Regenerate the extended conversation visualization with proper format"""
+    base_dir = Path(__file__).resolve().parent
     
     # Data from extended conversation test
     labels = ['NeuroMem', 'Traditional']
@@ -141,7 +144,7 @@ def regenerate_extended_conversation_visualization():
     plt.tight_layout()
     
     # Save with proper PNG format
-    plt.savefig('/root/.openclaw/workspace/neuromem-agents/extended_conversation_results_fixed.png', 
+    plt.savefig(base_dir / "extended_conversation_results_fixed.png",
                 format='png', dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()  # Close figure to free memory
     
@@ -150,6 +153,7 @@ def regenerate_extended_conversation_visualization():
 
 def create_simple_comparison_chart():
     """Create a simple comparison chart that should render properly"""
+    base_dir = Path(__file__).resolve().parent
     
     # Simple data for a clear comparison
     systems = ['NeuroMem', 'Traditional']
@@ -186,7 +190,7 @@ def create_simple_comparison_chart():
     plt.tight_layout()
     
     # Save with proper PNG format
-    plt.savefig('/root/.openclaw/workspace/neuromem-agents/simple_comparison_fixed.png', 
+    plt.savefig(base_dir / "simple_comparison_fixed.png",
                 format='png', dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
     

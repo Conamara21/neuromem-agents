@@ -2,6 +2,15 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = [
+    "neuromem",
+    "neuromem.core",
+    "neuromem.experiments",
+    "core",
+    "experiments",
+]
+
 [project]
 name = "neuromem-agents"
 version = "0.1.0"
@@ -39,6 +48,6 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/neuromem-agents"
-Repository = "https://github.com/yourusername/neuromem-agents"
-Issues = "https://github.com/yourusername/neuromem-agents/issues"
+Homepage = "https://github.com/Conamara21/neuromem-agents"
+Repository = "https://github.com/Conamara21/neuromem-agents"
+Issues = "https://github.com/Conamara21/neuromem-agents/issues"

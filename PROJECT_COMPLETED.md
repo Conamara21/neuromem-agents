@@ -58,11 +58,11 @@ Through our comprehensive testing, we discovered important insights:
 
 ```
 neuromem-agents/
-├── core/                           # Core memory engines
+├── neuromem/core/                  # Core memory engines
 │   ├── neuromorphic_memory.py     # Main NeuroMem implementation
 │   ├── traditional_rag.py         # Baseline RAG system  
 │   └── __init__.py
-├── experiments/                    # Testing and comparison
+├── neuromem/experiments/           # Testing and comparison
 │   ├── comparison_engine.py       # Benchmark framework
 │   └── __init__.py
 ├── tests/                         # Validation tests

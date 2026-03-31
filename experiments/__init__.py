@@ -1,11 +1,7 @@
 """
-NeuroMem-Agents Experiments Module
+Backward-compatible imports for the legacy ``experiments`` package path.
 """
 
-__version__ = "0.1.0"
-
-from .comparison_engine import ComparisonEngine
-
-__all__ = [
-    "ComparisonEngine"
-]
+from neuromem.experiments import __all__ as __all__
+from neuromem.experiments import __version__ as __version__
+from neuromem.experiments import *  # noqa: F401,F403

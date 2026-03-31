@@ -2,7 +2,7 @@
 Example demonstrating the biological design aspects of NeuroMem-Agents
 """
 
-from core.memory_manager import MemoryManager, MemoryType
+from neuromem.core import MemoryManager, MemoryType
 import time
 
 
