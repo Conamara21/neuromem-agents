@@ -35,7 +35,7 @@
 - `config.py` - Configuration
 - `install.sh` - Installation script
 - `pyproject.toml` - Project config
-- `LICENSE` - MIT License
+- `LICENSE` - GNU GPL v3
 
 ## ✅ Pre-Push Verification
 

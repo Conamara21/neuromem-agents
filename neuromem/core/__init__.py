@@ -4,7 +4,7 @@ NeuroMem-Agents Core Module
 
 from importlib import import_module
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 _EXPORTS = {
     "MemoryManager": (".memory_manager", "MemoryManager"),

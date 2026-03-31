@@ -37,7 +37,7 @@ def create_app(config_path: Optional[str] = None, settings=None):
 
     app = FastAPI(
         title="NeuroMem OpenAI-Compatible Proxy",
-        version="0.2.0",
+        version="0.3.0",
         description="OpenAI-compatible proxy with NeuroMem memory augmentation.",
     )
     app.add_middleware(

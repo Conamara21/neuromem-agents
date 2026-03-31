@@ -1,9 +1,9 @@
 # NeuroMem-Agents: Neuromorphic Memory Management System
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-A biologically-inspired memory management system for AI agents that mimics human memory architecture to improve contextual understanding and associative retrieval.
+A developer-focused memory layer for AI agents that adds session-scoped recall, associative retrieval, and long-context continuity to existing tools with minimal client changes.
 
 System architecture at a glance:
 
@@ -27,76 +27,29 @@ System architecture at a glance:
 - **LangChain docs**: `docs/langchain_integration.md`
 - **LlamaIndex docs**: `docs/llamaindex_integration.md`
 - **Docker docs**: `docs/docker_deployment.md`
+- **Release notes**: `CHANGELOG.md`
 - **Roadmap**: `docs/compatibility_roadmap.md`
 
-## 🧠 Key Features
+## Release 0.3.0
 
-- **Biological Inspiration**: Models human memory types (sensory, working, episodic, semantic)
-- **Associative Networks**: Connections between related memories enable contextual recall
-- **Spreading Activation**: Related memories are automatically activated during retrieval
-- **Adaptive Forgetting**: Irrelevant memories are pruned to maintain efficiency
-- **Contextual Tagging**: Rich metadata enables precise filtering and categorization
-- **Persistent Storage**: Memory data is saved to and loaded from database for continuity
-- **Memory Consolidation**: High-value memories are transferred from working to long-term storage
+- OpenAI-compatible proxy, MCP server, LangChain, and LlamaIndex are now shipped as one coherent developer surface.
+- Built-in metrics, direct memory APIs, and ready-to-use VS Code / JetBrains MCP configs reduce setup friction.
+- Docker deployment, rigorous benchmark artifacts, and visualization outputs are included in the repository.
+- The project is now released under GNU GPL v3.
 
-## 🧠 Advanced Neural Plasticity Features
+## Start Here
 
-- **STDP (Spike-Timing Dependent Plasticity)**: Connection strengths adjust based on activation timing, simulating biological long-term potentiation/depression
-- **Meta-Learning**: System learns how to learn more effectively, dynamically adjusting parameters based on performance
-- **Attention Gate**: Selective processing of relevant information, suppressing irrelevant memories during retrieval
-- **Self-Adapting Architecture**: System continuously improves performance through biological-inspired mechanisms
+- Existing OpenAI-compatible app: point its `base_url` at the NeuroMem proxy.
+- IDE or agent runtime: connect to the MCP server with `stdio` or `streamable-http`.
+- LangChain or LlamaIndex stack: use the first-party retriever helpers in `neuromem.frameworks`.
+- Local-first deployment: keep `embedding_model.provider = local_lexical` and share one SQLite `db_path`.
 
-## 🧠 Hierarchical Memory Architecture
+## Research Direction
 
-- **Cortical Column Simulation**: Hierarchical processing units mimicking biological cortical columns with input, intermediate, output, and prediction layers
-- **Multi-Region Coordination**: Coordination between different brain regions (hippocampus, prefrontal cortex, temporal lobe, etc.) for comprehensive information processing
-- **Predictive Coding**: Prediction-based storage optimization that reduces unnecessary information storage by evaluating prediction error
-
-## 🧠 Brain Region Coordination Mechanisms
-
-- **Regional Activity Tracking**: Independent activity levels for each brain region with historical tracking
-- **Inter-Regional Interactions**: Predefined connection strengths between brain regions with bidirectional communication
-- **Coordination Algorithm**: Dynamic modulation of activity levels based on inter-regional influences
-- **Multi-Region Retrieval**: Parallel access across multiple brain regions with weighted results
-- **Biological Accuracy**: Mirrors real neural pathways and cross-regional information flow
-
-## ⚡ Efficiency Optimizations
-
-- **Sparse Activation**: Selective activation of relevant neural subsets, dramatically reducing computational costs
-- **Progressive Refinement**: Coarse-grained filtering followed by fine-grained refinement process optimization
-- **Quantum-Inspired Algorithms**: Quantum computing concepts applied to optimize search and association processes
-- **Computational Savings**: Significant reduction in processing requirements while maintaining quality
-
-## 🧠 Biological Design Details
-
-Our system closely mimics human memory architecture:
-
-### Hippocampus-Cortex Analogy
-- **Working Memory Buffer**: Analogous to the hippocampus - high-speed but limited capacity storage for recent information
-- **Long-term Memory**: Analogous to the cortex - vast storage capacity but slower access
-- **Consolidation Process**: During idle periods (simulating sleep), frequently accessed memories in the working buffer are transferred to long-term storage
-
-### Sleep-like Consolidation Mechanism
-- **Idle State Detection**: The system identifies when it's not actively processing requests
-- **Background Processing**: During idle periods, consolidates high-value memories from working to long-term storage
-- **Frequency-based Selection**: Memories accessed more than a threshold (default: 3 times) are moved to long-term storage
-- **Compression**: Information is processed and integrated during transfer to optimize long-term storage
-
-### Memory Types and Their Biological Counterparts
-- **Sensory Memory**: Mimics instantaneous sensory storage (milliseconds)
-- **Working Memory**: Like the hippocampus, handles active processing with limited capacity
-- **Episodic Memory**: Stores personal experiences and contextual events
-- **Semantic Memory**: General knowledge and facts, like cortical storage
-
-### Adaptive Forgetting
-- **Decay Modeling**: Memories fade over time if not accessed
-- **Importance Weighting**: Frequently accessed memories are retained longer
-- **Resource Optimization**: Low-value memories are automatically pruned to maintain system efficiency
-
-### Associative Networks
-- **Synaptic Connections**: Memories are connected like neural pathways in the brain
-- **Hebbian Learning**: "Cells that fire together, wire together" - connections strengthen with repeated activation
-- **Spreading Activation**: When retrieving a memory, related memories are automatically activated
+- Session-scoped memory prevents cross-project leakage in long conversations and large project contexts.
+- Associative retrieval and automatic linking aim to surface related decisions, code context, and handoff details.
+- Hierarchical and biologically inspired memory managers remain available in the core module for research workflows.
+- Benchmarks, charts, and deeper architectural notes remain in this README and `benchmark_results/`.
 
 ## 🚀 Quick Start
 
@@ -577,7 +530,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -588,10 +541,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 # NeuroMem-Agents：神经形态记忆管理系统
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-一个生物学启发的AI代理记忆管理系统，模仿人类记忆架构以改善情境理解和关联检索。
+一个面向开发者接入的 AI 记忆层，用尽量小的客户端改动，为现有工具补上 session-scoped recall、关联检索与长上下文连续性。
 
 系统结构总览：
 
@@ -615,76 +568,29 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **LangChain 文档**：`docs/langchain_integration.md`
 - **LlamaIndex 文档**：`docs/llamaindex_integration.md`
 - **Docker 文档**：`docs/docker_deployment.md`
+- **版本说明**：`CHANGELOG.md`
 - **路线图**：`docs/compatibility_roadmap.md`
 
-## 🧠 主要特性
+## 0.3.0 版本亮点
 
-- **生物学启发**：建模人类记忆类型（感觉记忆、工作记忆、情节记忆、语义记忆）
-- **关联网络**：相关记忆间的连接实现情境召回
-- **扩散激活**：检索时自动激活相关记忆
-- **自适应遗忘**：修剪不相关信息以保持效率
-- **情境标记**：丰富的元数据实现精确过滤和分类
-- **持久化存储**：记忆数据保存到数据库以保证连续性
-- **记忆巩固**：高价值记忆从工作记忆转移到长期存储
+- OpenAI-compatible proxy、MCP server、LangChain 和 LlamaIndex 已收口为同一套开发者接入面。
+- 内置 metrics、直接记忆 API，以及可直接使用的 VS Code / JetBrains MCP 配置包，降低了接入门槛。
+- 仓库已包含 Docker 部署模板、严格对比 benchmark 产物和可视化结果。
+- 项目许可证已切换到 GNU GPL v3。
 
-## 🧠 高级神经可塑性特性
+## 开发者接入路径
 
-- **STDP（脉冲时间依赖可塑性）**：连接强度基于激活时间调整，模拟生物长时程增强/抑制
-- **元学习**：系统学习如何更有效地学习，动态调整基于性能的参数
-- **注意力门控**：相关息的选择性处理，检索时抑制无关记忆
-- **自适应架构**：系统通过生物学启发机制持续改进性能
+- 已有 OpenAI-compatible 应用：把 `base_url` 指向 NeuroMem proxy。
+- IDE 或 agent runtime：通过 `stdio` 或 `streamable-http` 连接 MCP server。
+- LangChain / LlamaIndex 栈：直接使用 `neuromem.frameworks` 里的一等适配层。
+- 本地优先部署：先保留 `embedding_model.provider = local_lexical`，并共享一个 SQLite `db_path`。
 
-## 🧠 分层记忆架构
+## 研究方向
 
-- **皮质柱模拟**：分层处理单元模仿生物皮质柱，具有输入、中间、输出和预测层
-- **多区域协调**：不同脑区（海马体、前额叶、颞叶等）间的协调，实现综合信息处理
-- **预测编码**：基于预测的存储优化，通过评估预测误差减少不必要的信息存储
-
-## 🧠 脑区协调机制
-
-- **区域活动跟踪**：每个脑区独立的活动水平，带有历史记录
-- **区域间交互**：脑区间预定义的连接强度，具有双向通信
-- **协调算法**：基于区域间影响的动态活动水平调节
-- **多区域检索**：跨多个脑区的并行访问，加权结果
-- **生物学准确性**：镜像真实脑区间的神经通路和跨区域信息流
-
-## ⚡ 效率优化
-
-- **稀疏激活**：选择性激活相关神经元子集，大幅降低计算成本
-- **渐进式细化**：粗粒度筛选后进行细粒度精化的过程优化
-- **量子启发算法**：利用量子计算概念优化搜索和关联过程
-- **计算节省**：在保持质量的同时显著减少处理需求
-
-## 🧠 类人脑设计细节
-
-我们的系统紧密模仿人类记忆架构：
-
-### 海马体-皮质类比
-- **工作记忆缓冲区**：类似于海马体 - 高速但容量有限的近期信息存储
-- **长期记忆**：类似于皮质 - 巨大存储容量但访问较慢
-- **巩固过程**：在空闲期间（模拟睡眠），工作缓冲区中频繁访问的记忆被转移到长期存储
-
-### 睡眠样巩固机制
-- **空闲状态检测**：系统识别何时未积极处理请求
-- **后台处理**：空闲期间，将高价值记忆从工作记忆转移到长期存储
-- **频率选择**：访问次数超过阈值（默认：3次）的记忆被移动到长期存储
-- **压缩**：传输过程中处理和整合信息以优化长期存储
-
-### 记忆类型及其生物对应物
-- **感觉记忆**：模仿瞬间感官存储（毫秒级）
-- **工作记忆**：类似海马体，处理活跃任务，容量有限
-- **情节记忆**：存储个人经历和情境事件
-- **语义记忆**：一般知识和事实，类似皮质存储
-
-### 自适应遗忘
-- **衰减建模**：如果不访问，记忆会随时间消退
-- **重要性加权**：频繁访问的记忆保留更久
-- **资源优化**：自动修剪低价值记忆以保持系统效率
-
-### 关联网络
-- **突触连接**：记忆像大脑中的神经通路一样相互连接
-- **赫布学习**："一起激发的细胞，一起连接" - 重复激活会加强连接
-- **扩散激活**：检索记忆时，相关记忆会自动激活
+- 通过 session-scoped memory 避免长对话和多项目场景下的上下文串扰。
+- 通过关联检索和自动链接，尽量补出相关决策、代码上下文和 handoff 信息。
+- 分层与生物学启发的 memory manager 仍保留在 core 模块中，方便研究型工作流继续使用。
+- benchmark、图表和更深入的架构说明仍保留在本 README 与 `benchmark_results/` 中。
 
 ## 🚀 快速开始
 
@@ -1165,7 +1071,7 @@ python visualize_results.py
 
 ## 📄 许可证
 
-该项目基于MIT许可证 - 详见[LICENSE](LICENSE)文件。
+该项目基于 GNU GPL v3.0 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 ## 🙏 致谢
 

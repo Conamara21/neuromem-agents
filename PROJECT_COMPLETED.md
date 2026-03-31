@@ -76,7 +76,7 @@ neuromem-agents/
 ├── PROJECT_COMPLETED.md          # This summary
 ├── README.md                     # Project overview
 ├── pyproject.toml                # Package configuration
-├── LICENSE                       # MIT license
+├── LICENSE                       # GNU GPL v3
 └── install.sh                    # Installation script
 ```
 

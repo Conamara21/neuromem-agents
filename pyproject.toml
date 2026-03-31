@@ -17,7 +17,7 @@ packages = [
 
 [project]
 name = "neuromem-agents"
-version = "0.2.0"
+version = "0.3.0"
 description = "Neuromorphic memory management system for AI agents"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -28,7 +28,7 @@ authors = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: Artificial Intelligence"
 ]
