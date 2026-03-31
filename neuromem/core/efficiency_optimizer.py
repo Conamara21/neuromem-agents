@@ -12,6 +12,7 @@ import time
 from datetime import datetime
 import hashlib
 import heapq
+from .text_embeddings import LexicalHashingEmbedder, TextEmbedder
 
 
 class ActivationState(Enum):
@@ -252,7 +253,12 @@ class QuantumInspiredOptimizer:
 class EfficiencyOptimizedMemoryManager:
     """Memory manager with efficiency optimizations"""
     
-    def __init__(self, capacity: int = 10000, db_path: str = "efficient_neuromem.db"):
+    def __init__(
+        self,
+        capacity: int = 10000,
+        db_path: str = "efficient_neuromem.db",
+        embedder: Optional[TextEmbedder] = None,
+    ):
         from .neuromorphic_memory import MemoryType  # Import here to avoid circular import
         self.MemoryType = MemoryType
         
@@ -269,6 +275,7 @@ class EfficiencyOptimizedMemoryManager:
         # Import database functionality
         from .persistence import MemoryDatabase
         self.db = MemoryDatabase(db_path)
+        self.embedder = embedder or LexicalHashingEmbedder()
         
     def encode(self, content: str, memory_type: 'MemoryType', tags: List[str] = None) -> str:
         """Encode information with sparse optimization"""
@@ -304,9 +311,8 @@ class EfficiencyOptimizedMemoryManager:
         return node_id
     
     def _generate_embedding(self, text: str) -> np.ndarray:
-        """Generate embedding for the text"""
-        hash_val = hash(text) % (2**32)
-        return np.array([float((hash_val >> i) & 1) for i in range(128)], dtype=np.float32)
+        """Generate text embedding using the configured embedder."""
+        return self.embedder.encode(text)
     
     def _create_sparse_embedding(self, dense_embedding: np.ndarray, 
                                sparsity_ratio: float = 0.7) -> List[float]:

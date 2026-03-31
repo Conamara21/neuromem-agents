@@ -14,6 +14,7 @@ import pickle
 import json
 from .persistence import MemoryDatabase
 from .enhanced_memory_manager import STDPMechanism, MetaLearningController, AttentionGate
+from .text_embeddings import LexicalHashingEmbedder, TextEmbedder
 
 
 class BrainRegion(Enum):
@@ -249,7 +250,12 @@ class MultiRegionCoordinator:
 class HierarchicalMemoryManager:
     """Main memory manager with hierarchical architecture, cortical columns, and predictive coding"""
     
-    def __init__(self, capacity: int = 10000, db_path: str = "hierarchical_neuromem.db"):
+    def __init__(
+        self,
+        capacity: int = 10000,
+        db_path: str = "hierarchical_neuromem.db",
+        embedder: Optional[TextEmbedder] = None,
+    ):
         from .neuromorphic_memory import MemoryType  # Import here to avoid circular import
         self.MemoryType = MemoryType
         
@@ -258,6 +264,7 @@ class HierarchicalMemoryManager:
         self.connections: Dict[str, List[Tuple[str, float, float]]] = {}  # (target_id, weight, last_update_time)
         self.access_frequency = {}
         self.db = MemoryDatabase(db_path)
+        self.embedder = embedder or LexicalHashingEmbedder()
         
         # Hierarchical architecture components
         self.column_manager = CorticalColumnManager()
@@ -328,9 +335,8 @@ class HierarchicalMemoryManager:
         return True
     
     def _generate_embedding(self, text: str) -> np.ndarray:
-        """Generate embedding for the text"""
-        hash_val = hash(text) % (2**32)
-        return np.array([float((hash_val >> i) & 1) for i in range(128)], dtype=np.float32)
+        """Generate text embedding using the configured embedder."""
+        return self.embedder.encode(text)
     
     def _save_hierarchical_node(self, node: HierarchicalMemoryNode):
         """Save hierarchical memory node to database"""

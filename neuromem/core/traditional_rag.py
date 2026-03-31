@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from enum import Enum
 import time
 import hashlib
+from .text_embeddings import LexicalHashingEmbedder, TextEmbedder
 
 
 @dataclass
@@ -28,12 +29,13 @@ class TraditionalMemoryNode:
 class TraditionalRAGSystem:
     """Baseline traditional RAG implementation for comparison"""
     
-    def __init__(self, capacity: int = 10000):
+    def __init__(self, capacity: int = 10000, embedder: Optional[TextEmbedder] = None):
         self.capacity = capacity
         self.memory_nodes: Dict[str, TraditionalMemoryNode] = {}
         self.access_frequency = {}
         self.vector_store = []  # Simple list of embeddings
         self.node_ids = []      # Corresponding node IDs
+        self.embedder = embedder or LexicalHashingEmbedder()
         
     def add_document(self, content: str, metadata: Dict[str, Any] = None) -> str:
         """Add a document to the traditional RAG system"""
@@ -68,11 +70,8 @@ class TraditionalRAGSystem:
         return node_id
     
     def _generate_embedding(self, text: str) -> np.ndarray:
-        """Generate simplified embedding (placeholder - replace with real model)"""
-        # In practice, this would use a transformer model
-        # For now, use a simple hash-based approach
-        hash_val = hash(text) % (2**32)
-        return np.array([float((hash_val >> i) & 1) for i in range(128)], dtype=np.float32)
+        """Generate text embedding using the configured embedder."""
+        return self.embedder.encode(text)
     
     def retrieve(self, query: str, top_k: int = 5) -> List[Tuple[TraditionalMemoryNode, float]]:
         """Retrieve documents using traditional vector similarity"""

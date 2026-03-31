@@ -19,6 +19,9 @@ _EXPORTS = {
     "MemoryType": (".neuromorphic_memory", "MemoryType"),
     "MemoryNode": (".neuromorphic_memory", "MemoryNode"),
     "TraditionalRAGSystem": (".traditional_rag", "TraditionalRAGSystem"),
+    "TextEmbedder": (".text_embeddings", "TextEmbedder"),
+    "LexicalHashingEmbedder": (".text_embeddings", "LexicalHashingEmbedder"),
+    "TfidfEmbedder": (".text_embeddings", "TfidfEmbedder"),
 }
 
 __all__ = [
@@ -33,7 +36,10 @@ __all__ = [
     "MemoryLayer",
     "MemoryType", 
     "MemoryNode",
-    "TraditionalRAGSystem"
+    "TraditionalRAGSystem",
+    "TextEmbedder",
+    "LexicalHashingEmbedder",
+    "TfidfEmbedder",
 ]
 
 

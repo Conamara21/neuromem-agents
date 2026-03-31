@@ -18,6 +18,7 @@ import time
 from datetime import datetime
 import pickle
 import json
+from .text_embeddings import LexicalHashingEmbedder, TextEmbedder
 
 
 class MemoryType(Enum):
@@ -67,7 +68,7 @@ class SpikingNeuralNetwork:
 class MemoryManager:
     """Main memory management system implementing neuromorphic principles"""
     
-    def __init__(self, capacity: int = 10000):
+    def __init__(self, capacity: int = 10000, embedder: Optional[TextEmbedder] = None):
         self.capacity = capacity
         self.memory_nodes: Dict[str, MemoryNode] = {}
         self.connections: Dict[str, List[Tuple[str, float]]] = {}  # (target_id, weight)
@@ -76,6 +77,7 @@ class MemoryManager:
         self.access_frequency = {}  # Track memory access patterns
         self.snn = SpikingNeuralNetwork()
         self.current_context = {}
+        self.embedder = embedder or LexicalHashingEmbedder()
         
     def encode(self, content: str, memory_type: MemoryType, tags: List[str] = None) -> str:
         """Encode new information into memory nodes"""
@@ -113,11 +115,8 @@ class MemoryManager:
         return node_id
     
     def _generate_embedding(self, text: str) -> np.ndarray:
-        """Generate simplified embedding (placeholder - replace with real model)"""
-        # In practice, this would use a transformer model
-        # For now, use a simple hash-based approach
-        hash_val = hash(text) % (2**32)
-        return np.array([float((hash_val >> i) & 1) for i in range(128)], dtype=np.float32)
+        """Generate text embedding using the configured embedder."""
+        return self.embedder.encode(text)
     
     def associate(self, node_id1: str, node_id2: str, strength: float = 1.0):
         """Create associative connections between memory nodes"""

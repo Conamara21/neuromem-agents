@@ -13,6 +13,7 @@ import hashlib
 import pickle
 import json
 from .persistence import MemoryDatabase, attach_persistence_methods
+from .text_embeddings import LexicalHashingEmbedder, TextEmbedder
 
 
 class MemoryType(Enum):
@@ -173,7 +174,12 @@ class AttentionGate:
 class EnhancedMemoryManager:
     """Enhanced memory management system with neural plasticity features"""
     
-    def __init__(self, capacity: int = 10000, db_path: str = "neuromem.db"):
+    def __init__(
+        self,
+        capacity: int = 10000,
+        db_path: str = "neuromem.db",
+        embedder: Optional[TextEmbedder] = None,
+    ):
         self.capacity = capacity
         self.memory_nodes: Dict[str, MemoryNode] = {}
         self.connections: Dict[str, List[Tuple[str, float, float]]] = {}  # (target_id, weight, last_update_time)
@@ -183,6 +189,7 @@ class EnhancedMemoryManager:
         self.snn = SpikingNeuralNetwork()
         self.current_context = {}
         self.db = MemoryDatabase(db_path)  # Initialize persistence layer
+        self.embedder = embedder or LexicalHashingEmbedder()
         
         # Neural plasticity components
         self.stdp_mechanism = STDPMechanism()
@@ -228,11 +235,8 @@ class EnhancedMemoryManager:
         return node_id
     
     def _generate_embedding(self, text: str) -> np.ndarray:
-        """Generate simplified embedding (placeholder - replace with real model)"""
-        # In practice, this would use a transformer model
-        # For now, use a simple hash-based approach
-        hash_val = hash(text) % (2**32)
-        return np.array([float((hash_val >> i) & 1) for i in range(128)], dtype=np.float32)
+        """Generate text embedding using the configured embedder."""
+        return self.embedder.encode(text)
     
     def associate(self, node_id1: str, node_id2: str, strength: float = 1.0):
         """Create associative connections between memory nodes with STDP"""
