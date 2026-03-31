@@ -511,9 +511,26 @@ Generated visualization files:
 - `HierarchicalMemoryManager`: Full biological features with cortical columns, multi-region coordination, and predictive coding
 - `EfficiencyOptimizedMemoryManager`: Efficiency-focused implementation with sparse activation, progressive refinement, and quantum-inspired algorithms
 - `SpikingNeuralNetwork`: Neural dynamics simulation
+- `PredictionEngine`: Predictive-coding module for next-state estimation, confidence scoring, and storage gating
+- `MultiRegionCoordinator`: Cross-region activity coordination and weighted retrieval orchestration
+- `AttentionGate`: Relevance-based attentional control over candidate memories
+- `STDPMechanism`: Timing-based connection update rule for synaptic plasticity
+- `MetaLearningController`: Performance-driven controller that adapts learning and consolidation behavior
 - `MemoryNode`: Individual memory units with metadata
 - `MemoryDatabase`: Persistent storage using SQLite
 - `ComparisonEngine`: Benchmarking tools
+
+### Brain-Inspired Region Mapping
+- **Hippocampus**: Short-term working-memory buffering and consolidation. In the current codebase this behavior is implemented primarily through `working_memory_buffer`, access-frequency tracking, and `consolidate()` in `neuromem/core/memory_manager.py` and `neuromem/core/enhanced_memory_manager.py`, while the hierarchical manager adds region-aware coordination on top.
+- **Cortex**: Long-term storage and large-capacity retention. This is represented by `long_term_memory`, SQLite-backed persistence, and cortical-column abstractions in `neuromem/core/hierarchical_memory.py`.
+- **Prefrontal Cortex**: Executive control and selective attention. `AttentionGate` in `neuromem/core/enhanced_memory_manager.py` computes relevance-weighted activation so retrieval can prioritize useful memories and suppress weak candidates.
+- **Synaptic Plasticity**: Activity-dependent learning dynamics. `STDPMechanism` in `neuromem/core/enhanced_memory_manager.py` updates connection weights from pre/post activation timing, approximating long-term potentiation and depression.
+- **Cerebellum**: Adaptive coordination and parameter tuning. `MetaLearningController` in `neuromem/core/enhanced_memory_manager.py` tracks recent performance and adjusts learning rate and consolidation thresholds to stabilize or accelerate adaptation.
+- **Temporal Lobe**: Sequence prediction and language-like pattern continuation. `PredictionEngine` in `neuromem/core/hierarchical_memory.py` extrapolates next-state patterns and estimates confidence from observed temporal structure.
+- **Parietal Lobe**: Attention orientation and cross-region integration. `coordinate_regions()` plus `MultiRegionCoordinator` in `neuromem/core/hierarchical_memory.py` decide which regions should stay active and how strongly each region should influence the final retrieval set.
+- **Limbic System**: Salience and importance weighting. `importance_score`, activation level, and frequency-aware retrieval scoring across `neuromem/core/memory_manager.py`, `neuromem/core/enhanced_memory_manager.py`, and `neuromem/core/efficiency_optimizer.py` bias retrieval toward memories that matter more.
+- **Neural Oscillations**: Rhythmic activation and thresholded firing. `SpikingNeuralNetwork` in `neuromem/core/memory_manager.py` and `neuromem/core/enhanced_memory_manager.py` converts weighted inputs into bounded activations and spike/no-spike events.
+- **Predictive Coding**: Prediction-error minimization. `prediction_error` fields plus `PredictionEngine.should_store()` in `neuromem/core/hierarchical_memory.py` make unexpected information more likely to be retained while reducing redundant storage.
 
 ## 📊 Performance Characteristics
 
@@ -1052,9 +1069,26 @@ python visualize_results.py
 - `HierarchicalMemoryManager`: 带皮质柱、多区域协调和预测编码的完整生物特性管理器
 - `EfficiencyOptimizedMemoryManager`: 效率专注的实现，包含稀疏激活、渐进式细化和量子启发算法
 - `SpikingNeuralNetwork`: 神经动力学模拟
+- `PredictionEngine`: 用于下一状态预测、置信度估计和存储门控的预测编码模块
+- `MultiRegionCoordinator`: 负责多脑区活动协调与加权检索编排
+- `AttentionGate`: 基于相关性的注意力控制模块
+- `STDPMechanism`: 基于激活时序的突触权重更新机制
+- `MetaLearningController`: 基于任务表现动态调整学习与巩固参数的控制器
 - `MemoryNode`: 带元数据的单个记忆单元
 - `MemoryDatabase`: 使用SQLite的持久化存储
 - `ComparisonEngine`: 基准测试工具
+
+### 脑器官映射与实现
+- **海马体（Hippocampus）**：对应短期工作记忆缓冲与记忆巩固。当前代码中，这部分主要通过 `neuromem/core/memory_manager.py` 和 `neuromem/core/enhanced_memory_manager.py` 里的 `working_memory_buffer`、访问频率统计与 `consolidate()` 实现；分层管理器在此基础上增加脑区级协调。
+- **大脑皮质（Cortex）**：对应长期记忆存储与大容量保留。当前通过 `long_term_memory`、SQLite 持久化，以及 `neuromem/core/hierarchical_memory.py` 中的皮质柱抽象来体现。
+- **前额叶皮质（Prefrontal Cortex）**：对应执行控制与选择性注意。`neuromem/core/enhanced_memory_manager.py` 中的 `AttentionGate` 会计算相关性加权，使检索优先保留高价值记忆、抑制弱相关候选。
+- **突触可塑性（Synaptic Plasticity）**：对应基于活动时序的学习。`neuromem/core/enhanced_memory_manager.py` 中的 `STDPMechanism` 会根据前后激活时差更新连接权重，近似模拟长时程增强与抑制。
+- **小脑（Cerebellum）**：对应协调优化与参数自适应。`neuromem/core/enhanced_memory_manager.py` 中的 `MetaLearningController` 会跟踪近期表现，并动态调整学习率与巩固阈值。
+- **颞叶（Temporal Lobe）**：对应时序预测与语言样模式延续。`neuromem/core/hierarchical_memory.py` 中的 `PredictionEngine` 负责下一状态外推，并基于历史模式计算预测置信度。
+- **顶叶（Parietal Lobe）**：对应注意力定向与跨区域整合。`neuromem/core/hierarchical_memory.py` 中的 `coordinate_regions()` 与 `MultiRegionCoordinator` 共同决定哪些脑区保持活跃，以及每个脑区对最终检索结果的影响权重。
+- **边缘系统（Limbic System）**：对应重要性评估与显著性增强。`neuromem/core/memory_manager.py`、`neuromem/core/enhanced_memory_manager.py` 与 `neuromem/core/efficiency_optimizer.py` 中的 `importance_score`、激活水平和频率加权检索共同让“更重要”的记忆更容易被召回。
+- **神经振荡（Neural Oscillations）**：对应节律性激活与阈值放电。`neuromem/core/memory_manager.py` 和 `neuromem/core/enhanced_memory_manager.py` 中的 `SpikingNeuralNetwork` 会把加权输入转成有界激活值，并进一步生成是否放电的事件。
+- **预测编码（Predictive Coding）**：对应预测误差最小化。`neuromem/core/hierarchical_memory.py` 中的 `prediction_error` 字段和 `PredictionEngine.should_store()` 会让“预测不到”的信息更容易进入存储，从而减少冗余。
 
 ## 📊 性能特征
 
