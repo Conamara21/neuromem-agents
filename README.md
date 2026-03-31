@@ -490,7 +490,7 @@ The project includes comprehensive benchmarking tools:
 - `advanced_benchmark.py`: Complex scenario evaluation
 - `extended_conversation_test.py`: 25+ interaction conversation simulation
 - `neuromem/experiments/rigorous_benchmark.py`: Reproducible shared-embedding benchmark
-- `neuromem/experiments/comprehensive_benchmark.py`: Multi-workload benchmark with paired statistics, topic ranking metrics, and long-conversation primed handoff recall
+- `neuromem/experiments/comprehensive_benchmark.py`: Multi-workload benchmark with paired statistics, topic ranking metrics, long-conversation primed handoff recall, and cross-session intrusion metrics
 - `visualize_results.py`: Generate charts from real benchmark JSON outputs
 
 To run the latest rigorous benchmark and generate visualizations:
@@ -513,13 +513,21 @@ To run the broader multi-workload comparison suite:
 
 ```bash
 python -m neuromem.experiments.comprehensive_benchmark \
-  --sizes 128 512 1024 \
-  --trials 3 \
-  --query-count 32 \
-  --warmup-count 8 \
+  --sizes 256 1024 4096 \
+  --trials 5 \
+  --query-count 128 \
+  --warmup-count 32 \
   --embedding-backend tfidf \
   --output benchmark_results/comprehensive_benchmark.json
 ```
+
+The comprehensive suite adds stronger evidence for papers and README claims by reporting:
+
+- topic ranking metrics such as `MAP@10` and `nDCG@10`
+- primed vs unprimed associative `hit@5`, `recall@10`, and `MRR@10`
+- handoff `hit@1` and `hit@5` in long-conversation project scenarios
+- cross-session intrusion rate to quantify memory leakage risk in unscoped baselines
+- paired bootstrap confidence intervals and sign-test p-values for system-to-system comparisons
 
 Generated visualization files:
 - `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_absolute.png`: Absolute latency, build-time, and recall trends
@@ -1061,7 +1069,7 @@ print(results['summary'])
 - `advanced_benchmark.py`: 复杂场景评估
 - `extended_conversation_test.py`: 25+次交互对话模拟
 - `neuromem/experiments/rigorous_benchmark.py`: 可复现的共享 embedding benchmark
-- `neuromem/experiments/comprehensive_benchmark.py`: 多 workload 对比基准，包含配对统计、topic 排序指标和长对话 primed handoff recall
+- `neuromem/experiments/comprehensive_benchmark.py`: 多 workload 对比基准，包含配对统计、topic 排序指标、长对话 primed handoff recall 和跨 session 串扰指标
 - `visualize_results.py`: 从真实 benchmark JSON 生成图表
 
 运行最新严谨 benchmark 并生成可视化：
@@ -1084,13 +1092,21 @@ python visualize_results.py
 
 ```bash
 python -m neuromem.experiments.comprehensive_benchmark \
-  --sizes 128 512 1024 \
-  --trials 3 \
-  --query-count 32 \
-  --warmup-count 8 \
+  --sizes 256 1024 4096 \
+  --trials 5 \
+  --query-count 128 \
+  --warmup-count 32 \
   --embedding-backend tfidf \
   --output benchmark_results/comprehensive_benchmark.json
 ```
+
+这套 comprehensive benchmark 会额外给出更有说服力的指标：
+
+- `MAP@10`、`nDCG@10` 这类 topic 排序质量指标
+- primed / unprimed 条件下的关联 `hit@5`、`recall@10`、`MRR@10`
+- 长对话项目 handoff 场景下的 `hit@1`、`hit@5`
+- 用来量化跨项目串扰风险的 cross-session intrusion rate
+- system 对 system 的 bootstrap 置信区间和 sign-test p-value
 
 生成的可视化文件：
 - `benchmark_results/rigorous_efficiency_benchmark_tfidf_optimized_absolute.png`: 绝对延迟、构建时间和 recall 趋势图

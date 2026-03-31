@@ -70,9 +70,11 @@ STRUCTURE_SYSTEMS = [
 ]
 
 SYSTEM_TRADITIONAL_SCOPED = "traditional_scoped"
+SYSTEM_TRADITIONAL_UNSCOPED = "traditional_unscoped"
 SYSTEM_NEUROMEM_SCOPED_IN_MEMORY = "neuromem_scoped_in_memory"
 SYSTEM_NEUROMEM_SCOPED_PERSISTENT = "neuromem_scoped_persistent"
 CONVERSATION_SYSTEMS = [
+    SYSTEM_TRADITIONAL_UNSCOPED,
     SYSTEM_TRADITIONAL_SCOPED,
     SYSTEM_NEUROMEM_SCOPED_IN_MEMORY,
     SYSTEM_NEUROMEM_SCOPED_PERSISTENT,
@@ -168,6 +170,22 @@ def precision_at_k(ranked_ids: Sequence[str], relevant_ids: Set[str], k: int) ->
         return 0.0
     hits = sum(1 for item_id in window if item_id in relevant_ids)
     return hits / k
+
+
+def average_precision_at_k(ranked_ids: Sequence[str], relevant_ids: Set[str], k: int) -> float:
+    if not relevant_ids or k <= 0:
+        return 0.0
+    running_hits = 0
+    precision_sum = 0.0
+    for index, item_id in enumerate(ranked_ids[:k], start=1):
+        if item_id not in relevant_ids:
+            continue
+        running_hits += 1
+        precision_sum += running_hits / index
+    denominator = min(k, len(relevant_ids))
+    if denominator == 0:
+        return 0.0
+    return precision_sum / denominator
 
 
 def recall_at_k(ranked_ids: Sequence[str], relevant_ids: Set[str], k: int) -> float:
@@ -350,20 +368,20 @@ def build_conversation_cases(size: int, rng: random.Random) -> List[Conversation
         for case_index in range(cases_per_session):
             template = DECISION_TEMPLATES[template_indices[case_index]]
             decision_text = (
-                f"{session_id} decision_{case_index} architecture note: {template[0]} "
+                f"{session_id} workstream_{case_index} architecture decision: {template[0]} "
                 f"constraint_{session_index % 5} milestone_{case_index % 4}"
             )
             followup_text = (
-                f"{session_id} followup_{case_index} recent discussion: {template[1]} "
+                f"{session_id} workstream_{case_index} followup: {template[1]} "
                 f"handoff_marker_{case_index} checkpoint_{session_index % 3}"
             )
             handoff_query = (
-                f"{template[2]} session={session_id} workstream_{case_index}"
+                f"{template[2]} workstream_{case_index} after the recent followup"
             )
             distractors = [
                 (
-                    f"{session_id} distractor_{case_index}_{distractor_index} progress update: "
-                    f"general project cleanup, review notes, backlog sync, workstream_{distractor_index % 3}"
+                    f"{session_id} workstream_{case_index} distractor_{distractor_index} progress update: "
+                    f"general cleanup, review notes, backlog sync, checkpoint_{distractor_index % 3}"
                 )
                 for distractor_index in range(distractors_per_case)
             ]
@@ -397,6 +415,31 @@ def build_structure_system(
     raise ValueError(f"Unsupported structure system: {system_name}")
 
 
+def build_topic_queries(topic_count: int, sample_count: int, rng: random.Random) -> List[Tuple[int, str]]:
+    if topic_count <= 0 or sample_count <= 0:
+        return []
+
+    query_templates = [
+        lambda topic: f"keyword_primary_{topic} bridge_{topic}_{(topic + 1) % topic_count}",
+        lambda topic: f"topic_{topic} keyword_primary_{topic}",
+        lambda topic: f"bridge_{topic}_{(topic + 1) % topic_count} topic_{topic}",
+        lambda topic: f"keyword_primary_{topic} topic_{topic} marker_topic_probe",
+    ]
+
+    queries: List[Tuple[int, str]] = []
+    variant_index = 0
+    while len(queries) < sample_count:
+        topics = list(range(topic_count))
+        rng.shuffle(topics)
+        for topic in topics:
+            if len(queries) >= sample_count:
+                break
+            template = query_templates[variant_index % len(query_templates)]
+            queries.append((topic, template(topic)))
+        variant_index += 1
+    return queries
+
+
 def build_conversation_system(
     system_name: str,
     *,
@@ -404,6 +447,8 @@ def build_conversation_system(
     temp_dir: Path,
     embedder: TextEmbedder,
 ) -> Tuple[Any, Optional[Path]]:
+    if system_name == SYSTEM_TRADITIONAL_UNSCOPED:
+        return ScopedTraditionalRAGSystem(capacity=capacity, embedder=embedder), None
     if system_name == SYSTEM_TRADITIONAL_SCOPED:
         return ScopedTraditionalRAGSystem(capacity=capacity, embedder=embedder), None
     if system_name == SYSTEM_NEUROMEM_SCOPED_IN_MEMORY:
@@ -443,16 +488,7 @@ def run_structure_trial(
         association_lookup.setdefault(right_doc_id, []).append(left_doc_id)
 
     exact_queries = rng.sample(corpus, k=min(query_count, len(corpus)))
-    topic_queries: List[Tuple[int, str]] = []
-    topics = list(range(topic_count))
-    rng.shuffle(topics)
-    for topic in topics[: min(query_count, topic_count)]:
-        topic_queries.append(
-            (
-                topic,
-                f"keyword_primary_{topic} bridge_{topic}_{(topic + 1) % topic_count}",
-            )
-        )
+    topic_queries = build_topic_queries(topic_count=topic_count, sample_count=query_count, rng=rng)
     primed_queries = rng.sample(corpus, k=min(query_count, len(corpus)))
 
     with tempfile.TemporaryDirectory(prefix="neuromem-comprehensive-structure-") as tmp_dir_name:
@@ -515,10 +551,12 @@ def run_structure_trial(
             exact_mrr_scores.append(reciprocal_rank_at_k(ranked_doc_ids, relevant_ids, 10))
 
         topic_latencies_ns: List[int] = []
+        topic_hit_at_1 = 0
         topic_hit_at_5 = 0
         topic_precision_scores: List[float] = []
         topic_recall_scores: List[float] = []
         topic_ndcg_scores: List[float] = []
+        topic_map_scores: List[float] = []
         relevant_by_topic = {
             topic: {item.doc_id for item in corpus if item.topic == topic}
             for topic in range(topic_count)
@@ -530,15 +568,20 @@ def run_structure_trial(
             topic_latencies_ns.append(time.perf_counter_ns() - started_at)
             ranked_doc_ids = _structure_ranked_doc_ids(system_name, results, content_to_doc_id)
             relevant_ids = relevant_by_topic[expected_topic]
+            topic_hit_at_1 += int(hit_rate_at_k(ranked_doc_ids, relevant_ids, 1))
             topic_hit_at_5 += int(hit_rate_at_k(ranked_doc_ids, relevant_ids, 5))
             topic_precision_scores.append(precision_at_k(ranked_doc_ids, relevant_ids, 5))
             topic_recall_scores.append(recall_at_k(ranked_doc_ids, relevant_ids, 10))
             topic_ndcg_scores.append(ndcg_at_k(ranked_doc_ids, relevant_ids, 10))
+            topic_map_scores.append(average_precision_at_k(ranked_doc_ids, relevant_ids, 10))
 
         unprimed_latencies_ns: List[int] = []
         primed_latencies_ns: List[int] = []
+        unprimed_neighbor_hit_scores: List[float] = []
+        primed_neighbor_hit_scores: List[float] = []
         unprimed_neighbor_recall_scores: List[float] = []
         primed_neighbor_recall_scores: List[float] = []
+        unprimed_neighbor_mrr_scores: List[float] = []
         primed_neighbor_mrr_scores: List[float] = []
         for item in primed_queries:
             related_doc_ids = association_lookup.get(item.doc_id, [])
@@ -555,7 +598,11 @@ def run_structure_trial(
                 for doc_id in _structure_ranked_doc_ids(system_name, results, content_to_doc_id)
                 if doc_id != item.doc_id
             ]
+            unprimed_neighbor_hit_scores.append(hit_rate_at_k(ranked_doc_ids, relevant_ids, 5))
             unprimed_neighbor_recall_scores.append(recall_at_k(ranked_doc_ids, relevant_ids, 10))
+            unprimed_neighbor_mrr_scores.append(
+                reciprocal_rank_at_k(ranked_doc_ids, relevant_ids, 10)
+            )
 
             _reset_access_frequency(system)
             for _ in range(3):
@@ -568,6 +615,7 @@ def run_structure_trial(
                 for doc_id in _structure_ranked_doc_ids(system_name, primed_results, content_to_doc_id)
                 if doc_id != item.doc_id
             ]
+            primed_neighbor_hit_scores.append(hit_rate_at_k(primed_ranked_doc_ids, relevant_ids, 5))
             primed_neighbor_recall_scores.append(recall_at_k(primed_ranked_doc_ids, relevant_ids, 10))
             primed_neighbor_mrr_scores.append(
                 reciprocal_rank_at_k(primed_ranked_doc_ids, relevant_ids, 10)
@@ -607,10 +655,22 @@ def run_structure_trial(
             "exact_top1_accuracy": exact_top1_hits / len(exact_queries) if exact_queries else 0.0,
             "exact_top5_accuracy": exact_top5_hits / len(exact_queries) if exact_queries else 0.0,
             "exact_mrr_at_10": statistics.fmean(exact_mrr_scores) if exact_mrr_scores else 0.0,
+            "topic_hit_rate_at_1": topic_hit_at_1 / len(topic_queries) if topic_queries else 0.0,
             "topic_hit_rate_at_5": topic_hit_at_5 / len(topic_queries) if topic_queries else 0.0,
             "topic_precision_at_5": statistics.fmean(topic_precision_scores) if topic_precision_scores else 0.0,
             "topic_recall_at_10": statistics.fmean(topic_recall_scores) if topic_recall_scores else 0.0,
             "topic_ndcg_at_10": statistics.fmean(topic_ndcg_scores) if topic_ndcg_scores else 0.0,
+            "topic_map_at_10": statistics.fmean(topic_map_scores) if topic_map_scores else 0.0,
+            "unprimed_neighbor_hit_at_5": (
+                statistics.fmean(unprimed_neighbor_hit_scores)
+                if unprimed_neighbor_hit_scores
+                else 0.0
+            ),
+            "primed_neighbor_hit_at_5": (
+                statistics.fmean(primed_neighbor_hit_scores)
+                if primed_neighbor_hit_scores
+                else 0.0
+            ),
             "unprimed_neighbor_recall_at_10": (
                 statistics.fmean(unprimed_neighbor_recall_scores)
                 if unprimed_neighbor_recall_scores
@@ -627,9 +687,26 @@ def run_structure_trial(
                 if primed_neighbor_recall_scores and unprimed_neighbor_recall_scores
                 else 0.0
             ),
+            "unprimed_neighbor_mrr_at_10": (
+                statistics.fmean(unprimed_neighbor_mrr_scores)
+                if unprimed_neighbor_mrr_scores
+                else 0.0
+            ),
             "primed_neighbor_mrr_at_10": (
                 statistics.fmean(primed_neighbor_mrr_scores)
                 if primed_neighbor_mrr_scores
+                else 0.0
+            ),
+            "priming_lift_neighbor_hit_at_5": (
+                statistics.fmean(primed_neighbor_hit_scores)
+                - statistics.fmean(unprimed_neighbor_hit_scores)
+                if primed_neighbor_hit_scores and unprimed_neighbor_hit_scores
+                else 0.0
+            ),
+            "priming_lift_neighbor_mrr_at_10": (
+                statistics.fmean(primed_neighbor_mrr_scores)
+                - statistics.fmean(unprimed_neighbor_mrr_scores)
+                if primed_neighbor_mrr_scores and unprimed_neighbor_mrr_scores
                 else 0.0
             ),
             "exact_p95_ms": exact_p95_ms,
@@ -650,7 +727,7 @@ def _conversation_store_document(
     memory_type: MemoryType,
     tags: Sequence[str],
 ) -> str:
-    if system_name == SYSTEM_TRADITIONAL_SCOPED:
+    if system_name in {SYSTEM_TRADITIONAL_UNSCOPED, SYSTEM_TRADITIONAL_SCOPED}:
         return system.add_document(
             content,
             metadata={"session_id": session_id, "tags": list(tags)},
@@ -665,6 +742,8 @@ def _conversation_retrieve(
     session_id: str,
     top_k: int,
 ) -> Sequence[Any]:
+    if system_name == SYSTEM_TRADITIONAL_UNSCOPED:
+        return system.retrieve(query, top_k=top_k)
     if system_name == SYSTEM_TRADITIONAL_SCOPED:
         return system.retrieve(query, top_k=top_k, session_id=session_id)
     return system.retrieve(
@@ -675,11 +754,20 @@ def _conversation_retrieve(
 
 
 def _conversation_ranked_ids(system_name: str, results: Sequence[Any], content_to_case_id: Dict[str, str]) -> List[str]:
-    if system_name == SYSTEM_TRADITIONAL_SCOPED:
+    if system_name in {SYSTEM_TRADITIONAL_UNSCOPED, SYSTEM_TRADITIONAL_SCOPED}:
         contents = [node.content for node, _score in results]
     else:
         contents = [node.content for node in results]
     return [content_to_case_id[content] for content in contents if content in content_to_case_id]
+
+
+def _conversation_ranked_sessions(
+    ranked_ids: Sequence[str],
+    case_id_to_session: Dict[str, str],
+    *,
+    k: int,
+) -> List[str]:
+    return [case_id_to_session[item_id] for item_id in ranked_ids[:k] if item_id in case_id_to_session]
 
 
 def run_conversation_trial(
@@ -738,6 +826,7 @@ def run_conversation_trial(
 
         stored_ids: Dict[str, str] = {}
         content_to_case_id: Dict[str, str] = {}
+        case_id_to_session: Dict[str, str] = {}
         ingest_start = time.perf_counter_ns()
         gc.disable()
         try:
@@ -762,6 +851,8 @@ def run_conversation_trial(
                 stored_ids[f"{case.decision_id}:followup"] = followup_id
                 content_to_case_id[case.decision_text] = f"{case.decision_id}:decision"
                 content_to_case_id[case.followup_text] = f"{case.decision_id}:followup"
+                case_id_to_session[f"{case.decision_id}:decision"] = case.session_id
+                case_id_to_session[f"{case.decision_id}:followup"] = case.session_id
 
                 for distractor_index, distractor in enumerate(case.distractors):
                     distractor_id = _conversation_store_document(
@@ -774,6 +865,7 @@ def run_conversation_trial(
                     )
                     stored_ids[f"{case.decision_id}:distractor:{distractor_index}"] = distractor_id
                     content_to_case_id[distractor] = f"{case.decision_id}:distractor:{distractor_index}"
+                    case_id_to_session[f"{case.decision_id}:distractor:{distractor_index}"] = case.session_id
 
                 if system_name in {SYSTEM_NEUROMEM_SCOPED_IN_MEMORY, SYSTEM_NEUROMEM_SCOPED_PERSISTENT}:
                     system.associate(decision_id, followup_id, strength=1.0)
@@ -792,9 +884,13 @@ def run_conversation_trial(
 
         unprimed_latencies_ns: List[int] = []
         primed_latencies_ns: List[int] = []
+        unprimed_hit_at_1_scores: List[float] = []
         unprimed_hit_scores: List[float] = []
+        primed_hit_at_1_scores: List[float] = []
         primed_hit_scores: List[float] = []
         primed_mrr_scores: List[float] = []
+        unprimed_intrusion_scores: List[float] = []
+        primed_intrusion_scores: List[float] = []
 
         for case in evaluated_cases:
             relevant_id = {f"{case.decision_id}:decision"}
@@ -810,7 +906,17 @@ def run_conversation_trial(
             )
             unprimed_latencies_ns.append(time.perf_counter_ns() - started_at)
             unprimed_ranked_ids = _conversation_ranked_ids(system_name, unprimed_results, content_to_case_id)
+            unprimed_hit_at_1_scores.append(hit_rate_at_k(unprimed_ranked_ids, relevant_id, 1))
             unprimed_hit_scores.append(hit_rate_at_k(unprimed_ranked_ids, relevant_id, 5))
+            unprimed_sessions = _conversation_ranked_sessions(
+                unprimed_ranked_ids,
+                case_id_to_session,
+                k=5,
+            )
+            if unprimed_sessions:
+                unprimed_intrusion_scores.append(
+                    sum(1 for session in unprimed_sessions if session != case.session_id) / len(unprimed_sessions)
+                )
 
             _reset_access_frequency(system)
             for _ in range(3):
@@ -825,8 +931,18 @@ def run_conversation_trial(
             )
             primed_latencies_ns.append(time.perf_counter_ns() - started_at)
             primed_ranked_ids = _conversation_ranked_ids(system_name, primed_results, content_to_case_id)
+            primed_hit_at_1_scores.append(hit_rate_at_k(primed_ranked_ids, relevant_id, 1))
             primed_hit_scores.append(hit_rate_at_k(primed_ranked_ids, relevant_id, 5))
             primed_mrr_scores.append(reciprocal_rank_at_k(primed_ranked_ids, relevant_id, 5))
+            primed_sessions = _conversation_ranked_sessions(
+                primed_ranked_ids,
+                case_id_to_session,
+                k=5,
+            )
+            if primed_sessions:
+                primed_intrusion_scores.append(
+                    sum(1 for session in primed_sessions if session != case.session_id) / len(primed_sessions)
+                )
 
         tracemalloc.stop()
 
@@ -848,8 +964,14 @@ def run_conversation_trial(
             "ingest_time_s": ingest_ns / 1e9,
             "unprimed_latency_ns": unprimed_latencies_ns,
             "primed_latency_ns": primed_latencies_ns,
+            "handoff_unprimed_hit_at_1": (
+                statistics.fmean(unprimed_hit_at_1_scores) if unprimed_hit_at_1_scores else 0.0
+            ),
             "handoff_unprimed_hit_at_5": (
                 statistics.fmean(unprimed_hit_scores) if unprimed_hit_scores else 0.0
+            ),
+            "handoff_primed_hit_at_1": (
+                statistics.fmean(primed_hit_at_1_scores) if primed_hit_at_1_scores else 0.0
             ),
             "handoff_primed_hit_at_5": (
                 statistics.fmean(primed_hit_scores) if primed_hit_scores else 0.0
@@ -857,9 +979,20 @@ def run_conversation_trial(
             "handoff_primed_mrr_at_5": (
                 statistics.fmean(primed_mrr_scores) if primed_mrr_scores else 0.0
             ),
+            "cross_session_intrusion_unprimed_at_5": (
+                statistics.fmean(unprimed_intrusion_scores) if unprimed_intrusion_scores else 0.0
+            ),
+            "cross_session_intrusion_primed_at_5": (
+                statistics.fmean(primed_intrusion_scores) if primed_intrusion_scores else 0.0
+            ),
             "handoff_priming_lift_at_5": (
                 statistics.fmean(primed_hit_scores) - statistics.fmean(unprimed_hit_scores)
                 if primed_hit_scores and unprimed_hit_scores
+                else 0.0
+            ),
+            "handoff_priming_lift_at_1": (
+                statistics.fmean(primed_hit_at_1_scores) - statistics.fmean(unprimed_hit_at_1_scores)
+                if primed_hit_at_1_scores and unprimed_hit_at_1_scores
                 else 0.0
             ),
             "unprimed_p95_ms": percentile([value / 1e6 for value in unprimed_latencies_ns], 0.95),
@@ -987,14 +1120,17 @@ def build_markdown_report(results: Dict[str, Any]) -> str:
             for system, metrics in structure["summary"].get(size_key, {}).items():
                 lines.append(
                     "- `{0}`: exact top1 {1:.3f}, exact MRR@10 {2:.3f}, "
-                    "topic nDCG@10 {3:.3f}, primed neighbor recall@10 {4:.3f}, "
-                    "priming lift {5:.3f}, exact p95 {6:.3f} ms".format(
+                    "topic MAP@10 {3:.3f}, topic nDCG@10 {4:.3f}, "
+                    "primed neighbor hit@5 {5:.3f}, primed neighbor recall@10 {6:.3f}, "
+                    "priming lift hit@5 {7:.3f}, exact p95 {8:.3f} ms".format(
                         system,
                         metrics["exact_top1_accuracy"]["mean"],
                         metrics["exact_mrr_at_10"]["mean"],
+                        metrics["topic_map_at_10"]["mean"],
                         metrics["topic_ndcg_at_10"]["mean"],
+                        metrics["primed_neighbor_hit_at_5"]["mean"],
                         metrics["primed_neighbor_recall_at_10"]["mean"],
-                        metrics["priming_lift_neighbor_recall_at_10"]["mean"],
+                        metrics["priming_lift_neighbor_hit_at_5"]["mean"],
                         metrics["exact_retrieval_latency_ns"]["p95"] / 1e6,
                     )
                 )
@@ -1005,7 +1141,7 @@ def build_markdown_report(results: Dict[str, Any]) -> str:
         lines.extend(
             [
                 "## Conversation Suite",
-                "Measures project-scoped long-horizon handoff recall after a priming turn.",
+                "Measures long-horizon handoff recall after a priming turn, including an unscoped traditional baseline and a manually scoped control baseline.",
                 "",
             ]
         )
@@ -1014,13 +1150,17 @@ def build_markdown_report(results: Dict[str, Any]) -> str:
             lines.append(f"### Approximate Record Budget {size}")
             for system, metrics in conversation["summary"].get(size_key, {}).items():
                 lines.append(
-                    "- `{0}`: unprimed handoff hit@5 {1:.3f}, primed handoff hit@5 {2:.3f}, "
-                    "handoff priming lift {3:.3f}, primed MRR@5 {4:.3f}, primed p95 {5:.3f} ms".format(
+                    "- `{0}`: unprimed hit@1 {1:.3f}, primed hit@1 {2:.3f}, "
+                    "primed hit@5 {3:.3f}, primed MRR@5 {4:.3f}, "
+                    "priming lift@1 {5:.3f}, cross-session intrusion@5 {6:.3f}, "
+                    "primed p95 {7:.3f} ms".format(
                         system,
-                        metrics["handoff_unprimed_hit_at_5"]["mean"],
+                        metrics["handoff_unprimed_hit_at_1"]["mean"],
+                        metrics["handoff_primed_hit_at_1"]["mean"],
                         metrics["handoff_primed_hit_at_5"]["mean"],
-                        metrics["handoff_priming_lift_at_5"]["mean"],
                         metrics["handoff_primed_mrr_at_5"]["mean"],
+                        metrics["handoff_priming_lift_at_1"]["mean"],
+                        metrics["cross_session_intrusion_primed_at_5"]["mean"],
                         metrics["primed_latency_ns"]["p95"] / 1e6,
                     )
                 )
@@ -1160,14 +1300,21 @@ def run_suite_from_args(args: argparse.Namespace):
             "exact_top1_accuracy",
             "exact_top5_accuracy",
             "exact_mrr_at_10",
+            "topic_hit_rate_at_1",
             "topic_hit_rate_at_5",
             "topic_precision_at_5",
             "topic_recall_at_10",
             "topic_ndcg_at_10",
+            "topic_map_at_10",
+            "unprimed_neighbor_hit_at_5",
+            "primed_neighbor_hit_at_5",
             "unprimed_neighbor_recall_at_10",
             "primed_neighbor_recall_at_10",
             "priming_lift_neighbor_recall_at_10",
+            "unprimed_neighbor_mrr_at_10",
             "primed_neighbor_mrr_at_10",
+            "priming_lift_neighbor_hit_at_5",
+            "priming_lift_neighbor_mrr_at_10",
             "exact_p95_ms",
             "topic_p95_ms",
             "primed_p95_ms",
@@ -1200,9 +1347,15 @@ def run_suite_from_args(args: argparse.Namespace):
                 metric_directions={
                     "exact_top1_accuracy": True,
                     "exact_mrr_at_10": True,
+                    "topic_hit_rate_at_1": True,
+                    "topic_map_at_10": True,
                     "topic_ndcg_at_10": True,
+                    "primed_neighbor_hit_at_5": True,
                     "primed_neighbor_recall_at_10": True,
+                    "primed_neighbor_mrr_at_10": True,
+                    "priming_lift_neighbor_hit_at_5": True,
                     "priming_lift_neighbor_recall_at_10": True,
+                    "priming_lift_neighbor_mrr_at_10": True,
                     "exact_p95_ms": False,
                     "topic_p95_ms": False,
                     "primed_p95_ms": False,
@@ -1221,9 +1374,14 @@ def run_suite_from_args(args: argparse.Namespace):
         )
         scalar_metrics = [
             "ingest_time_s",
+            "handoff_unprimed_hit_at_1",
             "handoff_unprimed_hit_at_5",
+            "handoff_primed_hit_at_1",
             "handoff_primed_hit_at_5",
             "handoff_primed_mrr_at_5",
+            "cross_session_intrusion_unprimed_at_5",
+            "cross_session_intrusion_primed_at_5",
+            "handoff_priming_lift_at_1",
             "handoff_priming_lift_at_5",
             "unprimed_p95_ms",
             "primed_p95_ms",
@@ -1246,16 +1404,42 @@ def run_suite_from_args(args: argparse.Namespace):
                 scalar_metrics=scalar_metrics,
                 latency_metrics=latency_metrics,
             ),
-            "pairwise": build_pairwise_summary(
+            "pairwise_vs_unscoped": build_pairwise_summary(
+                raw_trials,
+                CONVERSATION_SYSTEMS,
+                args.sizes,
+                baseline=SYSTEM_TRADITIONAL_UNSCOPED,
+                metric_directions={
+                    "handoff_unprimed_hit_at_1": True,
+                    "handoff_unprimed_hit_at_5": True,
+                    "handoff_primed_hit_at_1": True,
+                    "handoff_primed_hit_at_5": True,
+                    "handoff_primed_mrr_at_5": True,
+                    "handoff_priming_lift_at_1": True,
+                    "handoff_priming_lift_at_5": True,
+                    "cross_session_intrusion_unprimed_at_5": False,
+                    "cross_session_intrusion_primed_at_5": False,
+                    "unprimed_p95_ms": False,
+                    "primed_p95_ms": False,
+                    "python_bytes_after_ingest": False,
+                },
+                seed=args.seed + 17,
+            ),
+            "pairwise_vs_scoped_control": build_pairwise_summary(
                 raw_trials,
                 CONVERSATION_SYSTEMS,
                 args.sizes,
                 baseline=SYSTEM_TRADITIONAL_SCOPED,
                 metric_directions={
+                    "handoff_unprimed_hit_at_1": True,
                     "handoff_unprimed_hit_at_5": True,
+                    "handoff_primed_hit_at_1": True,
                     "handoff_primed_hit_at_5": True,
                     "handoff_primed_mrr_at_5": True,
+                    "handoff_priming_lift_at_1": True,
                     "handoff_priming_lift_at_5": True,
+                    "cross_session_intrusion_unprimed_at_5": False,
+                    "cross_session_intrusion_primed_at_5": False,
                     "unprimed_p95_ms": False,
                     "primed_p95_ms": False,
                     "python_bytes_after_ingest": False,
@@ -1291,12 +1475,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--sizes",
         nargs="+",
         type=int,
-        default=[128, 512, 1024],
+        default=[256, 1024, 4096],
         help="Approximate corpus sizes / record budgets to test",
     )
     parser.add_argument("--trials", type=int, default=5, help="Trials per condition")
-    parser.add_argument("--query-count", type=int, default=64, help="Queries or evaluated cases per trial")
-    parser.add_argument("--warmup-count", type=int, default=16, help="Warmup queries per trial")
+    parser.add_argument("--query-count", type=int, default=128, help="Queries or evaluated cases per trial")
+    parser.add_argument("--warmup-count", type=int, default=32, help="Warmup queries per trial")
     parser.add_argument(
         "--association-degree",
         type=int,

@@ -16,6 +16,7 @@ class ComprehensiveBenchmarkMetricTests(unittest.TestCase):
         self.assertAlmostEqual(benchmark.hit_rate_at_k(ranked, relevant, 1), 0.0)
         self.assertAlmostEqual(benchmark.hit_rate_at_k(ranked, relevant, 2), 1.0)
         self.assertAlmostEqual(benchmark.precision_at_k(ranked, relevant, 4), 0.5)
+        self.assertAlmostEqual(benchmark.average_precision_at_k(ranked, relevant, 4), 0.5)
         self.assertAlmostEqual(benchmark.recall_at_k(ranked, relevant, 4), 1.0)
         self.assertAlmostEqual(benchmark.reciprocal_rank_at_k(ranked, relevant, 4), 0.5)
         self.assertGreater(benchmark.ndcg_at_k(ranked, relevant, 4), 0.6)
@@ -47,6 +48,8 @@ class ComprehensiveBenchmarkSmokeTests(unittest.TestCase):
         self.assertEqual(result["suite"], benchmark.STRUCTURE_SUITE)
         self.assertIn("exact_mrr_at_10", result)
         self.assertIn("topic_ndcg_at_10", result)
+        self.assertIn("topic_map_at_10", result)
+        self.assertIn("primed_neighbor_hit_at_5", result)
         self.assertIn("priming_lift_neighbor_recall_at_10", result)
 
     def test_conversation_trial_emits_handoff_metrics(self):
@@ -59,7 +62,9 @@ class ComprehensiveBenchmarkSmokeTests(unittest.TestCase):
             seed=99,
         )
         self.assertEqual(result["suite"], benchmark.CONVERSATION_SUITE)
+        self.assertIn("handoff_primed_hit_at_1", result)
         self.assertIn("handoff_primed_hit_at_5", result)
+        self.assertIn("cross_session_intrusion_primed_at_5", result)
         self.assertIn("handoff_priming_lift_at_5", result)
 
     def test_cli_run_writes_json_and_markdown(self):
@@ -88,6 +93,35 @@ class ComprehensiveBenchmarkSmokeTests(unittest.TestCase):
             payload = json.loads(output_path.read_text(encoding="utf-8"))
             self.assertIn("structure_suite", payload)
             self.assertIn("pairwise", payload["structure_suite"])
+
+    def test_conversation_cli_includes_unscoped_and_scoped_pairwise_views(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = Path(temp_dir) / "conversation.json"
+            args = benchmark.build_parser().parse_args(
+                [
+                    "--suites",
+                    benchmark.CONVERSATION_SUITE,
+                    "--sizes",
+                    "48",
+                    "--trials",
+                    "1",
+                    "--query-count",
+                    "6",
+                    "--warmup-count",
+                    "1",
+                    "--output",
+                    str(output_path),
+                ]
+            )
+            benchmark.run_suite_from_args(args)
+            payload = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertIn("conversation_suite", payload)
+            self.assertIn("pairwise_vs_unscoped", payload["conversation_suite"])
+            self.assertIn("pairwise_vs_scoped_control", payload["conversation_suite"])
+            self.assertIn(
+                benchmark.SYSTEM_TRADITIONAL_UNSCOPED,
+                payload["conversation_suite"]["systems"],
+            )
 
 
 if __name__ == "__main__":
