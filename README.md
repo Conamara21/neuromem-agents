@@ -15,6 +15,19 @@ System architecture at a glance:
 
 ![NeuroMem architecture flowchart](docs/neuromem_architecture_flowchart_en.png)
 
+## Memory Structure and Mechanisms
+
+NeuroMem is not just a vector store behind a chat API. Its memory model combines session isolation, typed memory nodes, associative links, and lifecycle management so an agent can keep continuity in long conversations and large projects without treating all history as one flat context pool.
+
+- **Session-scoped isolation**: the integration layer tags each record with a session or project scope by default, so retrieval stays inside the current task instead of leaking across unrelated work.
+- **Typed memory nodes**: memories can be stored as `working`, `episodic`, `semantic`, or `sensory`, which lets the system separate temporary context from reusable knowledge.
+- **Associative graph recall**: memories are not only matched by query similarity; they can also be linked to each other, and those links can expand the retrieval set during later queries.
+- **Candidate-pruned retrieval**: the main memory manager combines exact matches, inverted-index term recall, tag filters, recent activation seeds, and association expansion before final ranking, which improves efficiency under larger memory sets.
+- **Memory lifecycle management**: high-frequency working memories can be consolidated into long-term memory, while stale low-value nodes can be decayed and forgotten to keep the store useful instead of just growing forever.
+- **Research extensions remain available**: the core module also includes attention gating, STDP-style plasticity, predictive coding, and multi-region coordination for experiments on more brain-inspired memory control.
+
+In practice, the OpenAI-compatible proxy, MCP server, and framework adapters expose the stable session-scoped associative layer first, while the more biologically inspired managers remain available as opt-in research components.
+
 ## Integration Compatibility
 
 - **Upstream chat providers**: OpenAI, Anthropic, Gemini, Ollama, LM Studio, and vLLM
@@ -559,6 +572,19 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 系统结构总览：
 
 ![NeuroMem 架构流转图](docs/neuromem_architecture_flowchart.png)
+
+## 记忆结构与机制
+
+NeuroMem 不是在聊天 API 前面再包一层普通向量检索。它把 session 隔离、分类型记忆节点、关联连接和记忆生命周期管理组合在一起，让 agent 在长对话和大项目里保持连续性，同时避免把所有历史都压成同一种上下文。
+
+- **Session 作用域隔离**：集成层默认会给每条记忆打上 session 或 project 范围标签，所以检索优先限定在当前任务内，避免不同项目、不同对话之间互相串扰。
+- **分类型记忆节点**：记忆可以按 `working`、`episodic`、`semantic`、`sensory` 等类型存储，用来区分临时上下文、经历性信息和可复用知识。
+- **关联图式召回**：系统不是只按查询相似度找记忆，记忆之间还可以建立关联，后续检索时这些连接会参与候选扩展，补出相关决策和上下游上下文。
+- **候选裁剪检索**：主记忆管理器会先结合精确命中、倒排词项召回、tag 过滤、最近激活节点和关联扩展生成候选，再做最终排序，因此在更大的记忆集合下仍能保持效率。
+- **记忆生命周期管理**：高频访问的工作记忆可以被巩固进长期记忆，低价值且长期未访问的节点会逐步衰减并被遗忘，避免记忆库只增不减。
+- **研究扩展能力仍保留**：core 模块中还保留了 attention gating、STDP 风格可塑性、predictive coding、多脑区协调等机制，便于继续做脑启发方向实验。
+
+在实际接入上，OpenAI-compatible proxy、MCP server 和各框架适配层优先暴露的是稳定的 session-scoped associative memory 主干；更强生物学启发的 manager 仍作为可选研究组件保留。
 
 ## 兼容性与接入方式
 
