@@ -79,6 +79,35 @@ class CompatibilityConfigTests(unittest.TestCase):
         self.assertEqual(provider.resolved_kind(), "openai_compatible")
         self.assertEqual(provider.resolved_base_url(), "http://localhost:1234/v1")
 
+    def test_mcp_settings_load_from_file_and_env(self):
+        payload = {
+            "mcp": {
+                "transport": "streamable-http",
+                "port": 9100,
+                "streamable_http_path": "/custom-mcp",
+            }
+        }
+
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as handle:
+            json.dump(payload, handle)
+            config_path = handle.name
+
+        try:
+            with patch.dict(
+                os.environ,
+                {
+                    "NEUROMEM_MCP_TRANSPORT": "stdio",
+                    "NEUROMEM_MCP_PORT": "9200",
+                },
+                clear=True,
+            ):
+                settings = load_settings(config_path)
+            self.assertEqual(settings.mcp.transport, "stdio")
+            self.assertEqual(settings.mcp.port, 9200)
+            self.assertEqual(settings.mcp.streamable_http_path, "/custom-mcp")
+        finally:
+            os.unlink(config_path)
+
 
 if __name__ == "__main__":
     unittest.main()

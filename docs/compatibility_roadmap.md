@@ -48,14 +48,19 @@ This roadmap turns NeuroMem from a research-oriented memory module into a practi
 - It lets NeuroMem add long-context memory without forcing users onto a custom protocol.
 - It provides a stable bridge toward future MCP integration.
 
-## Phase 2: Next Recommended Step
+## Phase 2: Shipping Now
 
-- Add an MCP server that exposes:
+- MCP server with both `stdio` and `streamable-http` transports.
+- Core MCP tools for:
   - memory search
   - memory write
+  - memory listing
+  - memory association
   - memory stats
-  - session-scoped recall
-- Provide ready-to-use configs for VS Code, JetBrains AI Assistant, Claude Desktop, and agent runtimes that support MCP.
+  - consolidation
+- MCP resources for stats, session summaries, and direct record lookup.
+- MCP prompts for session recall and project handoff workflows.
+- Ready-to-use NeuroMem MCP configs for local and remote deployment.
 
 ## Phase 3: Broader Ecosystem Support
 
@@ -63,3 +68,4 @@ This roadmap turns NeuroMem from a research-oriented memory module into a practi
 - LlamaIndex adapter for using NeuroMem as long-term conversational memory.
 - Docker image and compose template for one-command local startup.
 - Observability hooks for tracing retrieval latency, memory hit rate, and augmentation quality.
+- Prebuilt IDE config packs for VS Code, JetBrains AI Assistant, and other MCP clients.

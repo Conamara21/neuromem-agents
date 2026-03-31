@@ -8,6 +8,7 @@ packages = [
     "neuromem.core",
     "neuromem.experiments",
     "neuromem.integrations",
+    "neuromem.mcp",
     "neuromem.server",
     "core",
     "experiments",
@@ -39,6 +40,9 @@ server = [
     "fastapi>=0.111.0",
     "uvicorn>=0.30.0"
 ]
+mcp = [
+    "mcp[cli]>=1.26.0"
+]
 dev = [
     "pytest>=7.0",
     "black>=22.0",
@@ -63,6 +67,7 @@ research = [
 
 [project.scripts]
 neuromem-openai-server = "neuromem.server.openai_compatible:main"
+neuromem-mcp-server = "neuromem.mcp.server:main"
 
 [project.urls]
 Homepage = "https://github.com/Conamara21/neuromem-agents"

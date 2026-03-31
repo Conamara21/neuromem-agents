@@ -15,9 +15,11 @@ System architecture at a glance:
 
 - **Upstream chat providers**: OpenAI, Anthropic, Gemini, Ollama, LM Studio, and vLLM
 - **Client compatibility**: Python and JavaScript projects that already use an OpenAI-compatible `base_url`
+- **MCP compatibility**: local `stdio` and remote `streamable-http` transports for IDE agents and MCP runtimes
 - **API surface**: `/v1/chat/completions`, `/v1/responses`, `/v1/memory/records`, `/v1/memory/search`, `/v1/memory/stats`
 - **Configuration model**: provider-agnostic JSON config with environment variable overrides
 - **Examples**: `examples/configs/*.example.json` and `examples/compatibility/*`
+- **MCP docs**: `docs/mcp_integration.md`
 - **Roadmap**: `docs/compatibility_roadmap.md`
 
 ## 🧠 Key Features
@@ -97,6 +99,8 @@ Our system closely mimics human memory architecture:
 pip install neuromem-agents
 # or install the OpenAI-compatible proxy server
 pip install 'neuromem-agents[server]'
+# or install the MCP server
+pip install 'neuromem-agents[mcp]'
 ```
 
 ### OpenAI-Compatible Proxy
@@ -145,6 +149,38 @@ For SDK examples, see:
 - `examples/compatibility/openai_sdk_client.py`
 - `examples/compatibility/openai_sdk_responses_client.py`
 - `examples/compatibility/openai_client.js`
+
+### MCP Server
+
+NeuroMem also ships with a first-party MCP server for IDE agents and MCP-capable runtimes.
+
+Start a local `stdio` MCP server:
+
+```bash
+neuromem-mcp-server \
+  --config examples/configs/mcp_stdio.example.json \
+  --transport stdio
+```
+
+Start a remote `streamable-http` MCP server:
+
+```bash
+neuromem-mcp-server \
+  --config examples/configs/mcp_streamable_http.example.json \
+  --transport streamable-http \
+  --host 127.0.0.1 \
+  --port 8765
+```
+
+The default MCP HTTP endpoint is `http://127.0.0.1:8765/mcp`.
+
+What it exposes:
+
+- Tools: `create_memory`, `search_memory`, `list_memories`, `associate_memories`, `get_memory_stats`, `consolidate_memory`
+- Resources: `memory://stats/overview`, `memory://sessions/{session_id}/summary`, `memory://records/{memory_id}`
+- Prompts: `memory_recall_query`, `project_handoff_brief`
+
+See `docs/mcp_integration.md` for VS Code and JetBrains setup examples.
 
 ### Basic Usage
 
@@ -432,9 +468,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **上游聊天模型**：OpenAI、Anthropic、Gemini、Ollama、LM Studio、vLLM
 - **客户端兼容性**：已支持 OpenAI-compatible `base_url` 的 Python / JavaScript / IDE / agent 工作流
+- **MCP 兼容性**：支持本地 `stdio` 和远程 `streamable-http`，可接 IDE agent 与 MCP runtime
 - **API 入口**：`/v1/chat/completions`、`/v1/responses`、`/v1/memory/records`、`/v1/memory/search`、`/v1/memory/stats`
 - **配置方式**：统一 JSON 配置，加环境变量覆盖
 - **示例目录**：`examples/configs/*.example.json` 与 `examples/compatibility/*`
+- **MCP 文档**：`docs/mcp_integration.md`
 - **路线图**：`docs/compatibility_roadmap.md`
 
 ## 🧠 主要特性
@@ -514,6 +552,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 pip install neuromem-agents
 # 或安装 OpenAI-compatible 代理服务
 pip install 'neuromem-agents[server]'
+# 或安装 MCP 服务
+pip install 'neuromem-agents[mcp]'
 ```
 
 ### OpenAI-Compatible 代理服务
@@ -562,6 +602,38 @@ SDK 示例见：
 - `examples/compatibility/openai_sdk_client.py`
 - `examples/compatibility/openai_sdk_responses_client.py`
 - `examples/compatibility/openai_client.js`
+
+### MCP 服务
+
+NeuroMem 也提供了一等支持的 MCP server，适合 IDE agent 和支持 MCP 的运行时。
+
+启动本地 `stdio` MCP 服务：
+
+```bash
+neuromem-mcp-server \
+  --config examples/configs/mcp_stdio.example.json \
+  --transport stdio
+```
+
+启动远程 `streamable-http` MCP 服务：
+
+```bash
+neuromem-mcp-server \
+  --config examples/configs/mcp_streamable_http.example.json \
+  --transport streamable-http \
+  --host 127.0.0.1 \
+  --port 8765
+```
+
+默认 MCP HTTP 端点为 `http://127.0.0.1:8765/mcp`。
+
+它暴露的能力包括：
+
+- Tools：`create_memory`、`search_memory`、`list_memories`、`associate_memories`、`get_memory_stats`、`consolidate_memory`
+- Resources：`memory://stats/overview`、`memory://sessions/{session_id}/summary`、`memory://records/{memory_id}`
+- Prompts：`memory_recall_query`、`project_handoff_brief`
+
+VS Code 和 JetBrains 的接入示例见 `docs/mcp_integration.md`。
 
 ### 基础使用
 

@@ -23,6 +23,7 @@ _EXPORTS = {
     "MemoryAugmentedProxy": (".integrations", "MemoryAugmentedProxy"),
     "NeuromemSettings": (".integrations", "NeuromemSettings"),
     "load_settings": (".integrations", "load_settings"),
+    "build_mcp_server": (".mcp", "build_mcp_server"),
 }
 
 __all__ = [
@@ -42,6 +43,7 @@ __all__ = [
     "MemoryAugmentedProxy",
     "NeuromemSettings",
     "load_settings",
+    "build_mcp_server",
 ]
 
 

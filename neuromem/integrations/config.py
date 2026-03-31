@@ -136,6 +136,34 @@ def _environment_payload(include_defaults: bool) -> Dict[str, Any]:
     if server_payload:
         payload["server"] = server_payload
 
+    mcp_payload: Dict[str, Any] = {}
+    mcp_server_name = read_env("NEUROMEM_MCP_SERVER_NAME", "neuromem-mcp")
+    if mcp_server_name is not None:
+        mcp_payload["server_name"] = mcp_server_name
+    mcp_transport = read_env("NEUROMEM_MCP_TRANSPORT", "stdio")
+    if mcp_transport is not None:
+        mcp_payload["transport"] = mcp_transport
+    mcp_host = read_env("NEUROMEM_MCP_HOST", "127.0.0.1")
+    if mcp_host is not None:
+        mcp_payload["host"] = mcp_host
+    mcp_port = read_env("NEUROMEM_MCP_PORT", "8765")
+    if mcp_port is not None:
+        mcp_payload["port"] = _parse_int(mcp_port, 8765)
+    mcp_path = read_env("NEUROMEM_MCP_STREAMABLE_HTTP_PATH", "/mcp")
+    if mcp_path is not None:
+        mcp_payload["streamable_http_path"] = mcp_path
+    mcp_json_response = read_env("NEUROMEM_MCP_JSON_RESPONSE", "true")
+    if mcp_json_response is not None:
+        mcp_payload["json_response"] = _parse_bool(mcp_json_response, True)
+    mcp_stateless_http = read_env("NEUROMEM_MCP_STATELESS_HTTP", "true")
+    if mcp_stateless_http is not None:
+        mcp_payload["stateless_http"] = _parse_bool(mcp_stateless_http, True)
+    mcp_log_level = read_env("NEUROMEM_MCP_LOG_LEVEL", "INFO")
+    if mcp_log_level is not None:
+        mcp_payload["log_level"] = mcp_log_level
+    if mcp_payload:
+        payload["mcp"] = mcp_payload
+
     default_session_id = read_env("NEUROMEM_DEFAULT_SESSION_ID", "default")
     if default_session_id is not None:
         payload["default_session_id"] = default_session_id
@@ -248,6 +276,20 @@ class ServerConfig:
 
 
 @dataclass
+class MCPServerConfig:
+    """Network and transport settings for the MCP server."""
+
+    server_name: str = "neuromem-mcp"
+    transport: str = "stdio"
+    host: str = "127.0.0.1"
+    port: int = 8765
+    streamable_http_path: str = "/mcp"
+    json_response: bool = True
+    stateless_http: bool = True
+    log_level: str = "INFO"
+
+
+@dataclass
 class NeuromemSettings:
     """Top-level settings object for the compatibility layer."""
 
@@ -260,6 +302,7 @@ class NeuromemSettings:
     )
     memory: MemoryRuntimeConfig = field(default_factory=MemoryRuntimeConfig)
     server: ServerConfig = field(default_factory=ServerConfig)
+    mcp: MCPServerConfig = field(default_factory=MCPServerConfig)
     default_session_id: str = "default"
 
     @classmethod
@@ -268,6 +311,7 @@ class NeuromemSettings:
         embedding_payload = payload.get("embedding_model")
         memory_payload = payload.get("memory", {})
         server_payload = payload.get("server", {})
+        mcp_payload = payload.get("mcp", {})
 
         chat_model = ProviderConfig(**chat_payload) if chat_payload else None
         embedding_model = (
@@ -281,6 +325,7 @@ class NeuromemSettings:
             embedding_model=embedding_model.with_defaults(),
             memory=MemoryRuntimeConfig(**memory_payload),
             server=ServerConfig(**server_payload),
+            mcp=MCPServerConfig(**mcp_payload),
             default_session_id=payload.get("default_session_id", "default"),
         )
 

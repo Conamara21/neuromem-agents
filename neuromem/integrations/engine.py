@@ -165,6 +165,63 @@ class MemoryAugmentedProxy:
         results = self.memory.retrieve(query, top_k=resolved_top_k, context=context)
         return [self._serialize_memory_node(node) for node in results]
 
+    def list_memories(
+        self,
+        session_id: Optional[str] = None,
+        limit: int = 20,
+        tags: Optional[Sequence[str]] = None,
+        memory_type: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        required_tags = set()
+        if session_id is not None:
+            required_tags.add(self._session_tag(session_id))
+        for tag in tags or []:
+            normalized_tag = str(tag).strip()
+            if normalized_tag:
+                required_tags.add(normalized_tag)
+
+        normalized_memory_type = str(memory_type).strip().lower() if memory_type else None
+        items = []
+        for node in self.memory.memory_nodes.values():
+            node_tags = set(node.tags or [])
+            if required_tags and not required_tags.issubset(node_tags):
+                continue
+            if (
+                normalized_memory_type
+                and getattr(node.memory_type, "value", "").lower() != normalized_memory_type
+            ):
+                continue
+            items.append(self._serialize_memory_node(node))
+
+        items.sort(key=lambda item: item["timestamp"], reverse=True)
+        return items[: max(0, int(limit))]
+
+    def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
+        node = self.memory.memory_nodes.get(memory_id)
+        if node is None:
+            return None
+        return self._serialize_memory_node(node)
+
+    def associate_memories(
+        self,
+        source_id: str,
+        target_id: str,
+        strength: float = 0.8,
+    ) -> Dict[str, Any]:
+        if source_id not in self.memory.memory_nodes:
+            raise ValueError("Memory `{0}` was not found.".format(source_id))
+        if target_id not in self.memory.memory_nodes:
+            raise ValueError("Memory `{0}` was not found.".format(target_id))
+
+        self.memory.associate(source_id, target_id, strength=float(strength))
+        return {
+            "source_id": source_id,
+            "target_id": target_id,
+            "strength": float(strength),
+            "source_connections": len(self.memory.connections.get(source_id, [])),
+            "target_connections": len(self.memory.connections.get(target_id, [])),
+        }
+
     def memory_statistics(self) -> Dict[str, Any]:
         stats = self.memory.get_statistics()
         stats["db_path"] = self.settings.memory.db_path

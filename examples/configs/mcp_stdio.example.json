@@ -1,0 +1,22 @@
+{
+  "embedding_model": {
+    "provider": "local_lexical",
+    "model": "lexical-hash-512"
+  },
+  "memory": {
+    "db_path": "neuromem_mcp.db",
+    "retrieval_top_k": 5,
+    "auto_store": true,
+    "auto_associate": true
+  },
+  "mcp": {
+    "server_name": "neuromem-mcp",
+    "transport": "stdio",
+    "host": "127.0.0.1",
+    "port": 8765,
+    "streamable_http_path": "/mcp",
+    "json_response": true,
+    "stateless_http": true,
+    "log_level": "INFO"
+  }
+}

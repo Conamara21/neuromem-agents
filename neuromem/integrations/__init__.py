@@ -14,6 +14,7 @@ _EXPORTS = {
     "create_text_embedder": (".adapters", "create_text_embedder"),
     "normalize_chat_messages": (".adapters", "normalize_chat_messages"),
     "MemoryRuntimeConfig": (".config", "MemoryRuntimeConfig"),
+    "MCPServerConfig": (".config", "MCPServerConfig"),
     "NeuromemSettings": (".config", "NeuromemSettings"),
     "ProviderConfig": (".config", "ProviderConfig"),
     "ServerConfig": (".config", "ServerConfig"),
