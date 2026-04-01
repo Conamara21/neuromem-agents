@@ -5,6 +5,16 @@
 
 A developer-focused memory layer for AI agents that adds session-scoped recall, associative retrieval, and long-context continuity to existing tools with minimal client changes.
 
+NeuroMem is not a new LLM. It is a memory middleware layer that sits between your client and an upstream model.
+It retrieves session-scoped memories, injects them as structured context, stores the new turn, and returns the upstream model's answer.
+Use it when long conversations, large projects, or agent handoffs are starting to break under flat chat history or basic RAG.
+
+## Why Developers Use It
+
+- **Scoped long-term memory**: keep recall inside the current session or project instead of leaking across unrelated work.
+- **Agent-oriented retrieval**: combine typed memory nodes, associative links, and lifecycle management rather than only vector similarity.
+- **Low-friction integration**: connect through an OpenAI-compatible proxy, MCP, LangChain, or LlamaIndex with minimal client changes.
+
 Brain-inspired subsystem map:
 
 ![NeuroMem brain-inspired structure map](docs/neuromem_brain_regions_mindmap_en.png)
@@ -583,6 +593,16 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
 一个面向开发者接入的 AI 记忆层，用尽量小的客户端改动，为现有工具补上 session-scoped recall、关联检索与长上下文连续性。
+
+NeuroMem 不是新的大语言模型，而是一层位于客户端与上游模型之间的记忆中间层。
+它会检索当前 session / project 作用域内的相关记忆，把这些记忆整理成结构化上下文，再调用上游模型并回写这一轮新记忆。
+适合长对话、大项目连续开发和 Agent 任务交接等场景，尤其适用于传统聊天历史或普通 RAG 开始失效的时候。
+
+## 为什么开发者会用它
+
+- **有作用域的长期记忆**：检索默认限制在当前 session 或 project 内，减少不同任务之间的记忆串扰。
+- **更贴近 Agent 的检索方式**：不只做向量相似度，还结合分类型记忆、关联连接和记忆生命周期管理。
+- **低改动接入**：可以通过 OpenAI-compatible proxy、MCP、LangChain 或 LlamaIndex 接入现有工作流。
 
 脑启发结构图：
 
